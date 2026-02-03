@@ -4,3 +4,10 @@
   - Added: `src/models.py`, `src/parser.py`, `src/settings_store.py`, `src/reader.py`
   - Added: `main.py`, `tests/test_parser.py`, `TODO.md` (marked first 5 items done), `project.md`
   - Notes: basic chapter parsing, pydantic models, settings atomic write + debounce, simple HTML rendering for chapters.
+
+2026-02-03
+
+- feat: implement GUI backend and integration pieces
+  - Added: `src/gui.py`, `src/style.py`, `src/ui_stub.py`, `src/settings_controller.py`, `src/auto_hide.py`, `src/hotkey_manager.py`, `src/packager.py`
+  - Added tests for settings controller, hotkey manager, auto-hide, integration load/render, packaging helper
+  - Notes: GUI is implemented with minimal features (import, reader view, settings dialog placeholder, system tray). Hotkey integration uses `keyboard` if available; auto-hide uses timer-based controller.
