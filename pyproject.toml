@@ -4,4 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "charset-normalizer>=3.4.4",
+    "keyboard>=0.13.5",
+    "pydantic>=2.12.5",
+    "pyinstaller>=6.18.0",
+    "pyside6>=6.10.2",
+    "pytest>=9.0.2",
+]
