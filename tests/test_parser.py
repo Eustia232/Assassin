@@ -1,4 +1,9 @@
-from pathlib import Path
+import sys
+import pathlib
+
+# Ensure project root is on sys.path so `src` package is importable during tests
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
+
 from src.parser import split_into_chapters
 
 
