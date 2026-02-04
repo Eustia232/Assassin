@@ -67,6 +67,7 @@ class SettingsDialog(QDialog):
         self.setMinimumWidth(400)
         self.settings_controller = settings_controller
         self._current_settings = settings_controller.get_settings().copy()
+        self._main_window = parent  # Store reference to MainWindow
 
         layout = QVBoxLayout(self)
 
@@ -195,8 +196,8 @@ class SettingsDialog(QDialog):
         self._current_settings["window_opacity"] = value
         self.opacity_label.setText(f"{value}%")
         # Apply immediately for live preview
-        if self.parent() and hasattr(self.parent(), "set_window_opacity"):
-            self.parent().set_window_opacity(value)
+        if self._main_window and hasattr(self._main_window, "set_window_opacity"):
+            self._main_window.set_window_opacity(value)
 
     def _on_hotkey_changed(self, text):
         self._current_settings["hotkey"] = text
@@ -213,8 +214,8 @@ class SettingsDialog(QDialog):
     def reject(self):
         # Revert opacity change
         original = self.settings_controller.get_settings()
-        if self.parent() and hasattr(self.parent(), "set_window_opacity"):
-            self.parent().set_window_opacity(original.get("window_opacity", 100))
+        if self._main_window and hasattr(self._main_window, "set_window_opacity"):
+            self._main_window.set_window_opacity(original.get("window_opacity", 100))
         self.settings_controller.apply_settings_to_view()
         super().reject()
 
