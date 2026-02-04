@@ -559,8 +559,15 @@ class MainWindow(QMainWindow):
         self.settings_controller.apply_settings_to_view()
 
     def _restore_reading_state(self) -> None:
-        """Restore last opened file and scroll position on startup."""
+        """Restore last opened file, scroll position, and window geometry on startup."""
         state = self.reading_state.get_state()
+
+        # Restore window geometry
+        geo = state.get("window_geometry")
+        if geo and all(k in geo for k in ("x", "y", "width", "height")):
+            self.setGeometry(geo["x"], geo["y"], geo["width"], geo["height"])
+
+        # Restore last file
         last_file = self.reading_state.get_last_file()
         if last_file:
             try:
@@ -584,10 +591,17 @@ class MainWindow(QMainWindow):
         """Save current reading state."""
         scroll_pos = self.reader_view.widget.verticalScrollBar().value()
         chapter_idx = self.reader_core.current_index if self.reader_core.chapters else 0
+        geo = self.geometry()
         self.reading_state.save_state(
             file_path=self._current_file,
             chapter_index=chapter_idx,
             scroll_position=scroll_pos,
+            window_geometry={
+                "x": geo.x(),
+                "y": geo.y(),
+                "width": geo.width(),
+                "height": geo.height(),
+            },
         )
 
     def closeEvent(self, event):

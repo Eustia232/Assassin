@@ -42,11 +42,14 @@ class ReadingState:
         file_path: Optional[Path],
         chapter_index: int = 0,
         scroll_position: int = 0,
+        window_geometry: Optional[Dict[str, int]] = None,
     ) -> None:
         """Save current reading state."""
         self._data["last_file"] = str(file_path.resolve()) if file_path else None
         self._data["chapter_index"] = chapter_index
         self._data["scroll_position"] = scroll_position
+        if window_geometry:
+            self._data["window_geometry"] = window_geometry
         try:
             self._atomic_write()
         except Exception:
@@ -58,6 +61,7 @@ class ReadingState:
             "last_file": self._data.get("last_file"),
             "chapter_index": self._data.get("chapter_index", 0),
             "scroll_position": self._data.get("scroll_position", 0),
+            "window_geometry": self._data.get("window_geometry"),
         }
 
     def get_last_file(self) -> Optional[Path]:
