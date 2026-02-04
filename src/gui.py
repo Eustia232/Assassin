@@ -6,11 +6,9 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
     QTextBrowser,
-    QListWidget,
     QVBoxLayout,
     QPushButton,
     QFileDialog,
-    QSplitter,
     QHBoxLayout,
     QDialog,
     QSystemTrayIcon,
@@ -208,18 +206,11 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
         h = QHBoxLayout(central)
 
-        splitter = QSplitter(Qt.Horizontal)
-        h.addWidget(splitter)
-
-        # Library list
-        self.library_list = QListWidget()
-        splitter.addWidget(self.library_list)
-
-        # Reader view
+        # Reader view (main content area, takes most space)
         self.reader_view = QtReaderView()
-        splitter.addWidget(self.reader_view.widget)
+        h.addWidget(self.reader_view.widget, stretch=1)
 
-        # Buttons
+        # Buttons (right side)
         btn_layout = QVBoxLayout()
         self.import_btn = QPushButton("Import")
         self.import_btn.clicked.connect(self.import_file_dialog)
@@ -262,9 +253,6 @@ class MainWindow(QMainWindow):
         self.settings_controller.set_view(self.reader_view)
         self.settings_controller.apply_settings_to_view()
 
-        # library list activation
-        self.library_list.itemActivated.connect(self._on_library_item_activated)
-
     def import_file_dialog(self) -> None:
         fn, _ = QFileDialog.getOpenFileName(
             self, "Open text file", str(Path(".").resolve()), "Text Files (*.txt)"
@@ -278,11 +266,6 @@ class MainWindow(QMainWindow):
         self.reader_view.set_content(html)
         # ensure style applied
         self.settings_controller.apply_settings_to_view()
-
-    def _on_library_item_activated(self, item):
-        path = Path(item.data(Qt.UserRole)) if item.data(Qt.UserRole) else None
-        if path:
-            self.open_text_file(path)
 
     def open_settings(self) -> None:
         dlg = SettingsDialog(self.settings_controller, self)
