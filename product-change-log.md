@@ -1,3 +1,11 @@
+2026-02-04
+
+- feat: implement library, progress, search index, packaging smoke tests; update docs & TODO
+  - Added: `src/library.py`, `src/progress.py`, `src/search_index.py`
+  - Added tests: `tests/test_library_store.py`, `tests/test_progress_store.py`, `tests/test_search_index.py`, `tests/test_packaging_smoke.py`
+  - Updated: `TODO.md` (marked items 13-20 completed), `README.md`
+  - Notes: Implemented minimal LibraryStore, ProgressStore, simple FTS5 search index, packaging smoke test; all tests passing locally (13 passed).
+
 2026-02-03
 
 - feat: scaffold reader application and implement core pieces
