@@ -462,6 +462,13 @@ class MainWindow(QMainWindow):
         self._shortcut_settings = QShortcut(QKeySequence("Ctrl+P"), self)
         self._shortcut_settings.activated.connect(self.open_settings)
 
+        # Chapter navigation shortcuts (Left/Right arrows)
+        self._shortcut_prev = QShortcut(QKeySequence(Qt.Key_Left), self)
+        self._shortcut_prev.activated.connect(self.go_prev_chapter)
+
+        self._shortcut_next = QShortcut(QKeySequence(Qt.Key_Right), self)
+        self._shortcut_next.activated.connect(self.go_next_chapter)
+
         # Apply window opacity (100% on startup)
         self.setWindowOpacity(1.0)
 
@@ -552,10 +559,46 @@ class MainWindow(QMainWindow):
         self.reader_core.load_txt(path)
         html = self.reader_core.get_current_chapter_html()
         self.reader_view.set_content(html)
-        # Update title bar
-        self._title_bar.title_label.setText(f"Reader - {path.name}")
+        # Update title bar with chapter info
+        self._update_title_bar()
         # ensure style applied
         self.settings_controller.apply_settings_to_view()
+
+    def _update_title_bar(self) -> None:
+        """Update title bar with file name and chapter info."""
+        if not self._current_file:
+            self._title_bar.title_label.setText("Reader")
+            return
+        total = self.reader_core.get_chapter_count()
+        current = (
+            self.reader_core.get_current_chapter_index() + 1
+        )  # 1-based for display
+        if total > 1:
+            self._title_bar.title_label.setText(
+                f"Reader - {self._current_file.name} [{current}/{total}]"
+            )
+        else:
+            self._title_bar.title_label.setText(f"Reader - {self._current_file.name}")
+
+    def go_next_chapter(self) -> None:
+        """Navigate to next chapter."""
+        if self.reader_core.next_chapter():
+            html = self.reader_core.get_current_chapter_html()
+            self.reader_view.set_content(html)
+            self.settings_controller.apply_settings_to_view()
+            self._update_title_bar()
+            # Scroll to top of new chapter
+            self.reader_view.widget.verticalScrollBar().setValue(0)
+
+    def go_prev_chapter(self) -> None:
+        """Navigate to previous chapter."""
+        if self.reader_core.prev_chapter():
+            html = self.reader_core.get_current_chapter_html()
+            self.reader_view.set_content(html)
+            self.settings_controller.apply_settings_to_view()
+            self._update_title_bar()
+            # Scroll to top of new chapter
+            self.reader_view.widget.verticalScrollBar().setValue(0)
 
     def _restore_reading_state(self) -> None:
         """Restore last opened file, scroll position, and window geometry on startup."""

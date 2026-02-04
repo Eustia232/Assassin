@@ -21,3 +21,29 @@ class ReaderCore:
         # Simple HTML escape and wrap
         body = chap.text.replace("\n", "<br/>")
         return f"<h2>{chap.title}</h2>\n<div>{body}</div>"
+
+    def next_chapter(self) -> bool:
+        """Move to next chapter. Returns True if moved, False if already at last."""
+        if not self.chapters:
+            return False
+        if self.current_index < len(self.chapters) - 1:
+            self.current_index += 1
+            return True
+        return False
+
+    def prev_chapter(self) -> bool:
+        """Move to previous chapter. Returns True if moved, False if already at first."""
+        if not self.chapters:
+            return False
+        if self.current_index > 0:
+            self.current_index -= 1
+            return True
+        return False
+
+    def get_chapter_count(self) -> int:
+        """Return total number of chapters."""
+        return len(self.chapters)
+
+    def get_current_chapter_index(self) -> int:
+        """Return current chapter index (0-based)."""
+        return self.current_index

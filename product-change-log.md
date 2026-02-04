@@ -1,5 +1,10 @@
 2026-02-04
 
+- feat: add chapter navigation (next/prev chapter)
+  - Added `next_chapter()`, `prev_chapter()`, `get_chapter_count()`, `get_current_chapter_index()` methods to ReaderCore
+  - Added Left/Right arrow keyboard shortcuts in GUI for chapter navigation
+  - Title bar now shows chapter info: `[current/total]` when file has multiple chapters
+  - Added `tests/test_chapter_navigation.py` with 3 tests
 - fix: limit minimum window opacity to 50% (prevents scroll issues at low opacity)
 - fix: scrolling now works with transparent window
   - Added wheel event forwarding from TransparentFrame to QTextBrowser
