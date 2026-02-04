@@ -30,6 +30,7 @@ from .settings_store import SettingsStore
 from .settings_controller import SettingsController
 from .style import wrap_html_with_style
 from .hotkey_manager import HotkeyManager
+from .reading_state import ReadingState
 
 
 class QtReaderView:
@@ -210,8 +211,10 @@ class MainWindow(QMainWindow):
             settings_path = project_root / "settings.json"
 
         self.settings_store = SettingsStore(settings_path)
+        self.reading_state = ReadingState(project_root / "reading_state.json")
         self.reader_core = ReaderCore()
         self.settings_controller = SettingsController(self.settings_store)
+        self._current_file: Optional[Path] = None  # Track currently opened file
 
         # UI layout
         central = QWidget()
@@ -269,6 +272,9 @@ class MainWindow(QMainWindow):
         self.settings_controller.set_view(self.reader_view)
         self.settings_controller.apply_settings_to_view()
 
+        # Restore last reading state
+        self._restore_reading_state()
+
     def leaveEvent(self, event):
         """Called when mouse leaves the window."""
         super().leaveEvent(event)
@@ -297,11 +303,42 @@ class MainWindow(QMainWindow):
             self.open_text_file(Path(fn))
 
     def open_text_file(self, path: Path) -> None:
+        self._current_file = path
         self.reader_core.load_txt(path)
         html = self.reader_core.get_current_chapter_html()
         self.reader_view.set_content(html)
         # ensure style applied
         self.settings_controller.apply_settings_to_view()
+
+    def _restore_reading_state(self) -> None:
+        """Restore last opened file and scroll position on startup."""
+        state = self.reading_state.get_state()
+        last_file = self.reading_state.get_last_file()
+        if last_file:
+            try:
+                self.open_text_file(last_file)
+                # Restore scroll position after content is loaded
+                scroll_pos = state.get("scroll_position", 0)
+                if scroll_pos > 0:
+                    scrollbar = self.reader_view.widget.verticalScrollBar()
+                    scrollbar.setValue(scroll_pos)
+            except Exception:
+                pass  # File might be corrupted or inaccessible
+
+    def _save_reading_state(self) -> None:
+        """Save current reading state."""
+        scroll_pos = self.reader_view.widget.verticalScrollBar().value()
+        chapter_idx = self.reader_core.current_index if self.reader_core.chapters else 0
+        self.reading_state.save_state(
+            file_path=self._current_file,
+            chapter_index=chapter_idx,
+            scroll_position=scroll_pos,
+        )
+
+    def closeEvent(self, event):
+        """Save reading state when window is closed."""
+        self._save_reading_state()
+        super().closeEvent(event)
 
     def open_settings(self) -> None:
         # Prevent auto-hide while dialog is open

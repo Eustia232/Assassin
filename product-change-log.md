@@ -1,5 +1,10 @@
 2026-02-04
 
+- feat: add reading state persistence (last file + scroll position)
+  - Added: `src/reading_state.py`, `tests/test_reading_state.py`
+  - Modified: `src/gui.py` (restore state on startup, save on close)
+  - Notes: App now remembers last opened file and scroll position across sessions.
+- fix: add pytest pythonpath config to pyproject.toml for test imports
 - fix: prevent auto-hide during dialogs with flag, hide immediately on mouse leave (no delay)
 - fix: stop auto-hide timer when opening dialogs to prevent crash
 - fix: use QTimer for auto-hide instead of threading.Timer (thread-safe for Qt GUI)
