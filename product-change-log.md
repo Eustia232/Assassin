@@ -1,5 +1,6 @@
 2026-02-04
 
+- fix: prevent auto-hide during dialogs with flag, hide immediately on mouse leave (no delay)
 - fix: stop auto-hide timer when opening dialogs to prevent crash
 - fix: use QTimer for auto-hide instead of threading.Timer (thread-safe for Qt GUI)
 - fix: improve encoding detection using charset_normalizer with GBK/GB2312 fallback
