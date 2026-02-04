@@ -15,8 +15,15 @@ from PySide6.QtWidgets import (
     QDialog,
     QSystemTrayIcon,
     QMenu,
+    QLabel,
+    QSpinBox,
+    QLineEdit,
+    QComboBox,
+    QFormLayout,
+    QDialogButtonBox,
+    QColorDialog,
 )
-from PySide6.QtGui import QIcon, QAction
+from PySide6.QtGui import QIcon, QAction, QColor
 from PySide6.QtCore import Qt
 
 from .reader import ReaderCore
@@ -43,10 +50,143 @@ class QtReaderView:
 
 
 class SettingsDialog(QDialog):
-    # Minimal placeholder; real UI is implemented later
-    def __init__(self, parent=None):
+    """Settings dialog with font, size, colors, and hotkey controls."""
+
+    def __init__(self, settings_controller, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Settings")
+        self.setMinimumWidth(400)
+        self.settings_controller = settings_controller
+        self._current_settings = settings_controller.get_settings().copy()
+
+        layout = QVBoxLayout(self)
+
+        # Form layout for settings
+        form = QFormLayout()
+
+        # Font family
+        self.font_combo = QComboBox()
+        self.font_combo.addItems(
+            ["Noto Sans", "Microsoft YaHei", "SimSun", "Arial", "Times New Roman"]
+        )
+        self.font_combo.setCurrentText(
+            self._current_settings.get("font_family", "Noto Sans")
+        )
+        self.font_combo.currentTextChanged.connect(self._on_font_changed)
+        form.addRow("Font:", self.font_combo)
+
+        # Font size
+        self.size_spin = QSpinBox()
+        self.size_spin.setRange(8, 72)
+        self.size_spin.setValue(self._current_settings.get("font_size", 18))
+        self.size_spin.valueChanged.connect(self._on_size_changed)
+        form.addRow("Size:", self.size_spin)
+
+        # Text color
+        self.text_color_btn = QPushButton()
+        self._text_color = self._current_settings.get("text_color", "#111111")
+        self._update_color_button(self.text_color_btn, self._text_color)
+        self.text_color_btn.clicked.connect(self._pick_text_color)
+        form.addRow("Text Color:", self.text_color_btn)
+
+        # Background color
+        self.bg_color_btn = QPushButton()
+        self._bg_color = self._current_settings.get("bg_color", "#FFFFFF")
+        self._update_color_button(self.bg_color_btn, self._bg_color)
+        self.bg_color_btn.clicked.connect(self._pick_bg_color)
+        form.addRow("Background:", self.bg_color_btn)
+
+        # Hotkey
+        self.hotkey_edit = QLineEdit()
+        self.hotkey_edit.setText(self._current_settings.get("hotkey", "Ctrl+Shift+H"))
+        self.hotkey_edit.textChanged.connect(self._on_hotkey_changed)
+        form.addRow("Hotkey:", self.hotkey_edit)
+
+        # Auto-hide delay
+        self.delay_spin = QSpinBox()
+        self.delay_spin.setRange(100, 5000)
+        self.delay_spin.setSuffix(" ms")
+        self.delay_spin.setValue(self._current_settings.get("auto_hide_delay_ms", 600))
+        self.delay_spin.valueChanged.connect(self._on_delay_changed)
+        form.addRow("Auto-hide Delay:", self.delay_spin)
+
+        layout.addLayout(form)
+
+        # Preview area
+        preview_label = QLabel("Preview:")
+        layout.addWidget(preview_label)
+        self.preview = QTextBrowser()
+        self.preview.setMaximumHeight(100)
+        self._update_preview()
+        layout.addWidget(self.preview)
+
+        # Buttons
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def _update_color_button(self, btn, color):
+        btn.setStyleSheet(f"background-color: {color}; min-width: 60px;")
+        btn.setText(color)
+
+    def _update_preview(self):
+        from .style import wrap_html_with_style
+
+        html = wrap_html_with_style(
+            "<p>Sample text 示例文字</p>", self._current_settings
+        )
+        self.preview.setHtml(html)
+
+    def _on_font_changed(self, font):
+        self._current_settings["font_family"] = font
+        self.settings_controller.update_setting("font_family", font, persist=False)
+        self._update_preview()
+
+    def _on_size_changed(self, size):
+        self._current_settings["font_size"] = size
+        self.settings_controller.update_setting("font_size", size, persist=False)
+        self._update_preview()
+
+    def _pick_text_color(self):
+        color = QColorDialog.getColor(QColor(self._text_color), self)
+        if color.isValid():
+            self._text_color = color.name()
+            self._current_settings["text_color"] = self._text_color
+            self._update_color_button(self.text_color_btn, self._text_color)
+            self.settings_controller.update_setting(
+                "text_color", self._text_color, persist=False
+            )
+            self._update_preview()
+
+    def _pick_bg_color(self):
+        color = QColorDialog.getColor(QColor(self._bg_color), self)
+        if color.isValid():
+            self._bg_color = color.name()
+            self._current_settings["bg_color"] = self._bg_color
+            self._update_color_button(self.bg_color_btn, self._bg_color)
+            self.settings_controller.update_setting(
+                "bg_color", self._bg_color, persist=False
+            )
+            self._update_preview()
+
+    def _on_hotkey_changed(self, text):
+        self._current_settings["hotkey"] = text
+
+    def _on_delay_changed(self, value):
+        self._current_settings["auto_hide_delay_ms"] = value
+
+    def accept(self):
+        # Persist all settings on OK
+        for key, value in self._current_settings.items():
+            self.settings_controller.update_setting(key, value, persist=True)
+        super().accept()
+
+    def reject(self):
+        # Revert preview changes
+        original = self.settings_controller.get_settings()
+        self.settings_controller.apply_settings_to_view()
+        super().reject()
 
 
 class MainWindow(QMainWindow):
@@ -95,7 +235,7 @@ class MainWindow(QMainWindow):
         # Tray
         self.tray = QSystemTrayIcon(self)
         self.tray.setIcon(QIcon())
-        menu = QMenu()
+        menu = QMenu(self)
         exit_act = QAction("Exit", self)
         exit_act.triggered.connect(self.close)
         menu.addAction(exit_act)
@@ -145,7 +285,7 @@ class MainWindow(QMainWindow):
             self.open_text_file(path)
 
     def open_settings(self) -> None:
-        dlg = SettingsDialog(self)
+        dlg = SettingsDialog(self.settings_controller, self)
         dlg.exec()
 
     def _do_hide(self) -> None:
