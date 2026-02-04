@@ -1,5 +1,7 @@
 2026-02-04
 
+- fix: use QTimer for auto-hide instead of threading.Timer (thread-safe for Qt GUI)
+- fix: improve encoding detection using charset_normalizer with GBK/GB2312 fallback
 - feat: add auto-hide on mouse leave feature with checkbox toggle in Settings
 - fix: remove library list splitter, show only single reader view area
 - fix: implement SettingsDialog with real controls (font, size, colors, hotkey, auto-hide delay) and live preview
