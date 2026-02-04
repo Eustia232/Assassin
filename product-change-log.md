@@ -1,5 +1,11 @@
 2026-02-04
 
+- refactor: simplify window to standard (non-frameless) with opacity support
+  - Removed frameless window and custom title bar (caused visibility issues)
+  - Window opacity (0-100%) via setWindowOpacity, resets to 100% on startup
+  - Auto-hide disabled by default on startup
+  - Removed scrollbars from text area
+  - Removed unused TransparentContainer and CustomTitleBar classes
 - refactor: replace Import/Settings buttons with keyboard shortcuts
   - Removed buttons from main window for cleaner UI
   - Ctrl+O: Open file (Import)
