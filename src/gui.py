@@ -118,12 +118,7 @@ class SettingsDialog(QDialog):
         self.text_color_btn.clicked.connect(self._pick_text_color)
         form.addRow("Text Color:", self.text_color_btn)
 
-        # Background color
-        self.bg_color_btn = QPushButton()
-        self._bg_color = self._current_settings.get("bg_color", "#FFFFFF")
-        self._update_color_button(self.bg_color_btn, self._bg_color)
-        self.bg_color_btn.clicked.connect(self._pick_bg_color)
-        form.addRow("Background:", self.bg_color_btn)
+        # Background color setting removed — background handled by window/frame
 
         # Window opacity slider (1-100)
         opacity_layout = QHBoxLayout()
@@ -200,16 +195,7 @@ class SettingsDialog(QDialog):
             )
             self._update_preview()
 
-    def _pick_bg_color(self):
-        color = QColorDialog.getColor(QColor(self._bg_color), self)
-        if color.isValid():
-            self._bg_color = color.name()
-            self._current_settings["bg_color"] = self._bg_color
-            self._update_color_button(self.bg_color_btn, self._bg_color)
-            self.settings_controller.update_setting(
-                "bg_color", self._bg_color, persist=False
-            )
-            self._update_preview()
+    # Background color control removed — no handler
 
     def _on_opacity_changed(self, value):
         self._current_settings["window_opacity"] = value
