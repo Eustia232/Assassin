@@ -251,11 +251,13 @@ class SettingsDialog(QDialog):
         self.bg_color_btn.clicked.connect(self._pick_bg_color)
         form.addRow("Background:", self.bg_color_btn)
 
-        # Window opacity slider (0-100)
+        # Window opacity slider (10-100, minimum 10% to keep window visible)
         opacity_layout = QHBoxLayout()
         self.opacity_slider = QSlider(Qt.Horizontal)
-        self.opacity_slider.setRange(0, 100)
-        self.opacity_slider.setValue(self._current_settings.get("window_opacity", 85))
+        self.opacity_slider.setRange(10, 100)
+        self.opacity_slider.setValue(
+            max(10, self._current_settings.get("window_opacity", 85))
+        )
         self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
         opacity_layout.addWidget(self.opacity_slider)
         self.opacity_label = QLabel(f"{self.opacity_slider.value()}%")
@@ -481,6 +483,8 @@ class MainWindow(QMainWindow):
 
     def set_window_opacity(self, opacity_percent: int) -> None:
         """Set window background opacity (0-100), text remains opaque."""
+        # Minimum 10% opacity to ensure window is always visible
+        opacity_percent = max(10, min(100, opacity_percent))
         opacity = opacity_percent / 100.0
         self._container.set_background_opacity(opacity)
 
