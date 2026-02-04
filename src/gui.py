@@ -503,6 +503,12 @@ class MainWindow(QMainWindow):
         self.settings_controller.set_view(self.reader_view)
         self.settings_controller.apply_settings_to_view()
 
+        # Auto-save reading state every 60 seconds
+        self._auto_save_timer = QTimer(self)
+        self._auto_save_timer.setInterval(60000)  # 60 seconds
+        self._auto_save_timer.timeout.connect(self._save_reading_state)
+        self._auto_save_timer.start()
+
         # Restore last reading state
         self._restore_reading_state()
 
