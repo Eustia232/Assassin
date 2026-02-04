@@ -505,11 +505,11 @@ class MainWindow(QMainWindow):
         self._dialog_open = True
         self._auto_hide_timer.stop()
         dlg = SettingsDialog(self.settings_controller, self)
-        dlg.exec()
+        if dlg.exec():
+            # Dialog accepted - apply opacity from dialog's settings
+            opacity = dlg._current_settings.get("window_opacity", 100)
+            self.set_window_opacity(opacity)
         self._dialog_open = False
-        # Re-apply opacity after dialog closes (in case it was changed and saved)
-        opacity = self.settings_store.get().get("window_opacity", 100)
-        self.set_window_opacity(opacity)
 
     def _do_hide(self) -> None:
         try:
