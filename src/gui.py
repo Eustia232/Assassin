@@ -423,6 +423,8 @@ class MainWindow(QMainWindow):
         opacity_percent = max(0, min(100, opacity_percent))
         opacity = opacity_percent / 100.0
         self._frame.set_opacity(opacity)
+        self._frame.repaint()
+        self.repaint()
 
     def _check_mouse_position(self) -> None:
         """Check if mouse is outside the entire window (including title bar)."""
