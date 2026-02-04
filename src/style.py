@@ -53,7 +53,7 @@ def build_css(style: Union[StyleSettings, dict]) -> str:
 
     css = (
         f"body {{ font-family: '{font}'; font-size: {size}px; line-height: {line_height}; "
-        f"color: {text_color}; background-color: transparent; padding: 12px; }}"
+        f"color: {text_color}; background-color: {bg_color}; padding: 12px; }}"
     )
     return css
 
