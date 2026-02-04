@@ -1,5 +1,6 @@
 2026-02-04
 
+- feat: add auto-hide on mouse leave feature with checkbox toggle in Settings
 - fix: remove library list splitter, show only single reader view area
 - fix: implement SettingsDialog with real controls (font, size, colors, hotkey, auto-hide delay) and live preview
 - fix: move QAction import from QtWidgets to QtGui for PySide6 6.x compatibility
