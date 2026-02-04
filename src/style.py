@@ -38,7 +38,8 @@ def build_css(style: Union[StyleSettings, dict]) -> str:
     size = int(s.get("font_size", 18))
     text_color = s.get("text_color", "#111111")
     bg_color = s.get("bg_color", "#FFFFFF")
-    line_height = s.get("line_height", 1.6) if s.get("line_height") is not None else 1.6
+    # default line-height reduced for denser layout; can be overridden by settings
+    line_height = s.get("line_height", 1.3) if s.get("line_height") is not None else 1.3
 
     # sanitize/validate
     if not validate_color(text_color):
