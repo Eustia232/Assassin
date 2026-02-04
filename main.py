@@ -1,6 +1,16 @@
+import sys
 from pathlib import Path
+import sys
 from src.settings_store import SettingsStore
 from src.reader import ReaderCore
+
+
+def get_app_dir() -> Path:
+    """Get the directory where the application (exe or script) is located."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent
+    else:
+        return Path(__file__).parent
 
 
 def main():
@@ -10,8 +20,8 @@ def main():
     the GUI. For CI and headless runs this function will print a small smoke
     test summary.
     """
-    project_root = Path(".").resolve()
-    settings_path = project_root / "settings.json"
+    app_dir = get_app_dir()
+    settings_path = app_dir / "settings.json"
     settings = SettingsStore(settings_path)
 
     reader = ReaderCore()
@@ -32,8 +42,6 @@ if __name__ == "__main__":
         # run_app returns exit code from QApplication.exec(); forward it if
         # provided. If it returns None, keep default behaviour.
         if isinstance(rc, int):
-            import sys
-
             sys.exit(rc)
     except Exception:
         # Fall back to the minimal CLI smoke test

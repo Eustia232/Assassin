@@ -35,12 +35,24 @@ from PySide6.QtGui import (
 )
 from PySide6.QtCore import Qt, QTimer, QPoint, QRect, QSize
 
+import sys
+
 from .reader import ReaderCore
 from .settings_store import SettingsStore
 from .settings_controller import SettingsController
 from .style import wrap_html_with_style
 from .hotkey_manager import HotkeyManager
 from .reading_state import ReadingState
+
+
+def get_app_dir() -> Path:
+    """Get the directory where the application (exe or script) is located."""
+    if getattr(sys, "frozen", False):
+        # Running as compiled exe (PyInstaller)
+        return Path(sys.executable).parent
+    else:
+        # Running as script
+        return Path(__file__).parent.parent
 
 
 class QtReaderView:
@@ -401,12 +413,12 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
         self.setAttribute(Qt.WA_TranslucentBackground)
 
-        project_root = Path(".").resolve()
+        app_dir = get_app_dir()
         if settings_path is None:
-            settings_path = project_root / "settings.json"
+            settings_path = app_dir / "settings.json"
 
         self.settings_store = SettingsStore(settings_path)
-        self.reading_state = ReadingState(project_root / "reading_state.json")
+        self.reading_state = ReadingState(app_dir / "reading_state.json")
         self.reader_core = ReaderCore()
         self.settings_controller = SettingsController(self.settings_store)
         self._current_file: Optional[Path] = None  # Track currently opened file

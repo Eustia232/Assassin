@@ -1,8 +1,17 @@
 from pathlib import Path
 import json
+import sys
 from typing import Dict, Any, List, Optional
 
 from .reader import ReaderCore
+
+
+def _get_app_dir() -> Path:
+    """Get the directory where the application (exe or script) is located."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent
+    else:
+        return Path(__file__).parent.parent
 
 
 class LibraryStore:
@@ -12,8 +21,8 @@ class LibraryStore:
     """
 
     def __init__(self, path: Optional[Path] = None):
-        project_root = Path(".").resolve()
-        self.path = path or (project_root / "library.json")
+        app_dir = _get_app_dir()
+        self.path = path or (app_dir / "library.json")
         self._data: Dict[str, Dict[str, Any]] = {}
         self._load()
 
