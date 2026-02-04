@@ -1,5 +1,9 @@
 2026-02-04
 
+- fix: text area background now transparent (only text is opaque)
+  - Modified `style.py` to set body background to transparent
+  - Modified `gui.py` QTextBrowser to have transparent background
+  - Window opacity slider now affects entire window uniformly, text remains readable
 - feat: frameless transparent window with adjustable opacity (0-100%)
   - Added custom title bar with close/minimize/maximize buttons and drag support
   - Window background opacity adjustable via Settings slider, text always remains opaque

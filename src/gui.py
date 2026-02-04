@@ -406,10 +406,13 @@ class MainWindow(QMainWindow):
         content_layout.setContentsMargins(5, 5, 5, 5)
 
         # Reader view (main content area, takes most space)
-        # Text area is always opaque
+        # Text area background is transparent, only text is opaque
         self.reader_view = QtReaderView()
         self.reader_view.widget.setMouseTracking(True)
-        self.reader_view.widget.setStyleSheet("background-color: white; border: none;")
+        self.reader_view.widget.setStyleSheet(
+            "background-color: transparent; border: none;"
+        )
+        self.reader_view.widget.setAttribute(Qt.WA_TranslucentBackground)
         content_layout.addWidget(self.reader_view.widget, stretch=1)
 
         # Buttons (right side)
@@ -479,14 +482,9 @@ class MainWindow(QMainWindow):
         opacity = opacity_percent / 100.0
         self._container.set_background_opacity(opacity)
 
-        # Update title bar button styles based on opacity
-        alpha = int(255 * max(0.3, opacity))  # Minimum alpha for visibility
-        title_color = f"rgba(51, 51, 51, {alpha})"
-
-        # Keep text area always opaque
-        bg_color = self.settings_store.get().get("bg_color", "#FFFFFF")
+        # Text area background stays transparent, only window container has opacity
         self.reader_view.widget.setStyleSheet(
-            f"background-color: {bg_color}; border: none;"
+            "background-color: transparent; border: none;"
         )
 
     def _check_mouse_position(self) -> None:
