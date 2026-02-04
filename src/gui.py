@@ -66,8 +66,15 @@ class QtReaderView:
         self.widget.setHtml(inner_html)
 
     def apply_style(self, style) -> None:
+        # Save scroll position before changing HTML
+        scrollbar = self.widget.verticalScrollBar()
+        scroll_pos = scrollbar.value()
+
         html = wrap_html_with_style(self._inner_html, style)
         self.widget.setHtml(html)
+
+        # Restore scroll position
+        scrollbar.setValue(scroll_pos)
 
 
 class SettingsDialog(QDialog):
