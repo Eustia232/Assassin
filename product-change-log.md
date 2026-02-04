@@ -1,5 +1,6 @@
 2026-02-04
 
+- fix: move QAction import from QtWidgets to QtGui for PySide6 6.x compatibility
 - feat: implement library, progress, search index, packaging smoke tests; update docs & TODO
   - Added: `src/library.py`, `src/progress.py`, `src/search_index.py`
   - Added tests: `tests/test_library_store.py`, `tests/test_progress_store.py`, `tests/test_search_index.py`, `tests/test_packaging_smoke.py`
