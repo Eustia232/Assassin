@@ -254,7 +254,7 @@ class MainWindow(QMainWindow):
         self._auto_hide_timer = QTimer(self)
         self._auto_hide_timer.setSingleShot(True)
         self._auto_hide_timer.timeout.connect(self._do_hide)
-        self._auto_hide_delay = self.settings_store.get().get("auto_hide_delay_ms", 600)
+        self._dialog_open = False  # Flag to prevent auto-hide when dialogs are open
 
         # Hotkey manager
         self.hotkey_manager = HotkeyManager()
@@ -272,12 +272,12 @@ class MainWindow(QMainWindow):
     def leaveEvent(self, event):
         """Called when mouse leaves the window."""
         super().leaveEvent(event)
-        # Check if auto-hide is enabled
+        # Don't auto-hide if a dialog is open
+        if self._dialog_open:
+            return
+        # Check if auto-hide is enabled - hide immediately (no delay)
         if self.settings_store.get().get("auto_hide_enabled", True):
-            self._auto_hide_delay = self.settings_store.get().get(
-                "auto_hide_delay_ms", 600
-            )
-            self._auto_hide_timer.start(self._auto_hide_delay)
+            self.hide()
 
     def enterEvent(self, event):
         """Called when mouse enters the window."""
@@ -286,11 +286,13 @@ class MainWindow(QMainWindow):
         self._auto_hide_timer.stop()
 
     def import_file_dialog(self) -> None:
-        # Stop auto-hide timer while dialog is open
+        # Prevent auto-hide while dialog is open
+        self._dialog_open = True
         self._auto_hide_timer.stop()
         fn, _ = QFileDialog.getOpenFileName(
             self, "Open text file", str(Path(".").resolve()), "Text Files (*.txt)"
         )
+        self._dialog_open = False
         if fn:
             self.open_text_file(Path(fn))
 
@@ -302,10 +304,12 @@ class MainWindow(QMainWindow):
         self.settings_controller.apply_settings_to_view()
 
     def open_settings(self) -> None:
-        # Stop auto-hide timer while dialog is open
+        # Prevent auto-hide while dialog is open
+        self._dialog_open = True
         self._auto_hide_timer.stop()
         dlg = SettingsDialog(self.settings_controller, self)
         dlg.exec()
+        self._dialog_open = False
 
     def _do_hide(self) -> None:
         try:
