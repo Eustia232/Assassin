@@ -23,8 +23,17 @@ from PySide6.QtWidgets import (
     QCheckBox,
     QSlider,
 )
-from PySide6.QtGui import QIcon, QAction, QColor, QCursor, QShortcut, QKeySequence
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtGui import (
+    QIcon,
+    QAction,
+    QColor,
+    QCursor,
+    QShortcut,
+    QKeySequence,
+    QPainter,
+    QBrush,
+)
+from PySide6.QtCore import Qt, QTimer, QPoint
 
 from .reader import ReaderCore
 from .settings_store import SettingsStore
@@ -210,12 +219,90 @@ class SettingsDialog(QDialog):
         super().reject()
 
 
+class TransparentFrame(QWidget):
+    """A widget that draws a semi-transparent background."""
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self._opacity = 1.0  # 0.0 to 1.0
+        self._bg_color = QColor(255, 255, 255)
+
+    def set_opacity(self, opacity: float) -> None:
+        self._opacity = max(0.0, min(1.0, opacity))
+        self.update()
+
+    def set_bg_color(self, color: QColor) -> None:
+        self._bg_color = color
+        self.update()
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        color = QColor(self._bg_color)
+        color.setAlphaF(self._opacity)
+        painter.fillRect(self.rect(), QBrush(color))
+
+
+class TitleBar(QWidget):
+    """Simple custom title bar for frameless window."""
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.setFixedHeight(30)
+        self._drag_pos: Optional[QPoint] = None
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 0, 5, 0)
+        layout.setSpacing(5)
+
+        self.title_label = QLabel("Reader")
+        self.title_label.setStyleSheet("font-weight: bold; color: #333;")
+        layout.addWidget(self.title_label)
+        layout.addStretch()
+
+        # Minimize button
+        self.min_btn = QPushButton("─")
+        self.min_btn.setFixedSize(30, 24)
+        self.min_btn.setStyleSheet(
+            "QPushButton { border: none; background: transparent; } "
+            "QPushButton:hover { background: #ddd; }"
+        )
+        self.min_btn.clicked.connect(lambda: self.window().showMinimized())
+        layout.addWidget(self.min_btn)
+
+        # Close button
+        self.close_btn = QPushButton("×")
+        self.close_btn.setFixedSize(30, 24)
+        self.close_btn.setStyleSheet(
+            "QPushButton { border: none; background: transparent; font-size: 16px; } "
+            "QPushButton:hover { background: #e81123; color: white; }"
+        )
+        self.close_btn.clicked.connect(lambda: self.window().close())
+        layout.addWidget(self.close_btn)
+
+    def mousePressEvent(self, event) -> None:
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = event.globalPosition().toPoint() - self.window().pos()
+            event.accept()
+
+    def mouseMoveEvent(self, event) -> None:
+        if self._drag_pos is not None and event.buttons() == Qt.LeftButton:
+            self.window().move(event.globalPosition().toPoint() - self._drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event) -> None:
+        self._drag_pos = None
+
+
 class MainWindow(QMainWindow):
     def __init__(self, settings_path: Optional[Path] = None):
         super().__init__()
         self.setWindowTitle("Reader")
         self.resize(900, 600)
         self.setMouseTracking(True)
+
+        # Frameless window with transparent background
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
+        self.setAttribute(Qt.WA_TranslucentBackground)
 
         project_root = Path(".").resolve()
         if settings_path is None:
@@ -232,15 +319,19 @@ class MainWindow(QMainWindow):
             {"auto_hide_enabled": False, "window_opacity": 100}, debounce_ms=0
         )
 
-        # Central widget
-        central = QWidget()
-        central.setMouseTracking(True)
-        self.setCentralWidget(central)
+        # Transparent frame as central widget
+        self._frame = TransparentFrame()
+        self._frame.setMouseTracking(True)
+        self.setCentralWidget(self._frame)
 
         # Main layout
-        main_layout = QVBoxLayout(central)
-        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout = QVBoxLayout(self._frame)
+        main_layout.setContentsMargins(1, 1, 1, 1)  # Thin border
         main_layout.setSpacing(0)
+
+        # Custom title bar
+        self._title_bar = TitleBar()
+        main_layout.addWidget(self._title_bar)
 
         # Reader view (main content area)
         self.reader_view = QtReaderView()
@@ -248,6 +339,10 @@ class MainWindow(QMainWindow):
         # Hide scrollbars
         self.reader_view.widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.reader_view.widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # Make text browser background match the frame
+        self.reader_view.widget.setStyleSheet(
+            "QTextBrowser { background: transparent; border: none; }"
+        )
         main_layout.addWidget(self.reader_view.widget, stretch=1)
 
         # Keyboard shortcuts (Ctrl+O for Import, Ctrl+P for Settings)
@@ -302,10 +397,10 @@ class MainWindow(QMainWindow):
         self._restore_reading_state()
 
     def set_window_opacity(self, opacity_percent: int) -> None:
-        """Set window opacity (0-100)."""
+        """Set window background opacity (0-100). Text remains opaque."""
         opacity_percent = max(0, min(100, opacity_percent))
         opacity = opacity_percent / 100.0
-        self.setWindowOpacity(opacity)
+        self._frame.set_opacity(opacity)
 
     def _check_mouse_position(self) -> None:
         """Check if mouse is outside the entire window (including title bar)."""
@@ -339,8 +434,8 @@ class MainWindow(QMainWindow):
         self.reader_core.load_txt(path)
         html = self.reader_core.get_current_chapter_html()
         self.reader_view.set_content(html)
-        # Update window title
-        self.setWindowTitle(f"Reader - {path.name}")
+        # Update title bar
+        self._title_bar.title_label.setText(f"Reader - {path.name}")
         # ensure style applied
         self.settings_controller.apply_settings_to_view()
 
@@ -352,12 +447,19 @@ class MainWindow(QMainWindow):
             try:
                 self.open_text_file(last_file)
                 # Restore scroll position after content is loaded
+                # Use QTimer to delay until content is rendered
                 scroll_pos = state.get("scroll_position", 0)
                 if scroll_pos > 0:
-                    scrollbar = self.reader_view.widget.verticalScrollBar()
-                    scrollbar.setValue(scroll_pos)
+                    QTimer.singleShot(
+                        100, lambda: self._set_scroll_position(scroll_pos)
+                    )
             except Exception:
                 pass  # File might be corrupted or inaccessible
+
+    def _set_scroll_position(self, pos: int) -> None:
+        """Set scroll position (called after content is rendered)."""
+        scrollbar = self.reader_view.widget.verticalScrollBar()
+        scrollbar.setValue(pos)
 
     def _save_reading_state(self) -> None:
         """Save current reading state."""

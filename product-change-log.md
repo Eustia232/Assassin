@@ -1,5 +1,10 @@
 2026-02-04
 
+- feat: frameless transparent window with opaque text
+  - Window background opacity adjustable (0-100%), text always stays opaque
+  - Custom title bar with drag support, minimize and close buttons
+  - Uses WA_TranslucentBackground + custom paintEvent for transparency
+- fix: scroll position now restores correctly on startup (using QTimer delay)
 - refactor: simplify window to standard (non-frameless) with opacity support
   - Removed frameless window and custom title bar (caused visibility issues)
   - Window opacity (0-100%) via setWindowOpacity, resets to 100% on startup
