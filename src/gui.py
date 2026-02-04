@@ -226,6 +226,11 @@ class TransparentFrame(QWidget):
         super().__init__(parent)
         self._opacity = 1.0  # 0.0 to 1.0
         self._bg_color = QColor(255, 255, 255)
+        self._text_browser: Optional[QTextBrowser] = None
+
+    def set_text_browser(self, browser: QTextBrowser) -> None:
+        """Set the text browser to forward wheel events to."""
+        self._text_browser = browser
 
     def set_opacity(self, opacity: float) -> None:
         self._opacity = max(0.0, min(1.0, opacity))
@@ -240,6 +245,14 @@ class TransparentFrame(QWidget):
         color = QColor(self._bg_color)
         color.setAlphaF(self._opacity)
         painter.fillRect(self.rect(), QBrush(color))
+
+    def wheelEvent(self, event) -> None:
+        """Forward wheel events to the text browser for scrolling."""
+        if self._text_browser:
+            # Forward the event to the text browser's viewport
+            self._text_browser.wheelEvent(event)
+        else:
+            super().wheelEvent(event)
 
 
 class TitleBar(QWidget):
@@ -336,14 +349,22 @@ class MainWindow(QMainWindow):
         # Reader view (main content area)
         self.reader_view = QtReaderView()
         self.reader_view.widget.setMouseTracking(True)
-        # Hide scrollbars
+        # Hide scrollbars but keep scrolling enabled
         self.reader_view.widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.reader_view.widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # Make text browser background match the frame
+        # Make text browser background transparent, ensure viewport is also transparent
         self.reader_view.widget.setStyleSheet(
             "QTextBrowser { background: transparent; border: none; }"
+            "QTextBrowser > QWidget { background: transparent; }"
         )
+        # Ensure the viewport is transparent
+        viewport = self.reader_view.widget.viewport()
+        if viewport:
+            viewport.setAutoFillBackground(False)
         main_layout.addWidget(self.reader_view.widget, stretch=1)
+
+        # Connect text browser to frame for wheel event forwarding
+        self._frame.set_text_browser(self.reader_view.widget)
 
         # Keyboard shortcuts (Ctrl+O for Import, Ctrl+P for Settings)
         self._shortcut_import = QShortcut(QKeySequence("Ctrl+O"), self)

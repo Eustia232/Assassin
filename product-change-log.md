@@ -1,5 +1,8 @@
 2026-02-04
 
+- fix: scrolling now works with transparent window
+  - Added wheel event forwarding from TransparentFrame to QTextBrowser
+  - Mouse wheel scrolling works regardless of opacity setting
 - feat: frameless transparent window with opaque text
   - Window background opacity adjustable (0-100%), text always stays opaque
   - Custom title bar with drag support, minimize and close buttons
