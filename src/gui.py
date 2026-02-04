@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QCheckBox,
 )
-from PySide6.QtGui import QIcon, QAction, QColor
+from PySide6.QtGui import QIcon, QAction, QColor, QCursor
 from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject, QPoint
 
 from .reader import ReaderCore
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
             return
 
         # Get global mouse position and window geometry
-        cursor_pos = QApplication.instance().cursor().pos()
+        cursor_pos = QCursor.pos()  # Global mouse position
         window_rect = (
             self.frameGeometry()
         )  # frameGeometry includes title bar and borders
