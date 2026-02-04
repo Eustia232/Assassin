@@ -12,12 +12,11 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QSplitter,
     QHBoxLayout,
-    QAction,
     QDialog,
     QSystemTrayIcon,
     QMenu,
 )
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QAction
 from PySide6.QtCore import Qt
 
 from .reader import ReaderCore
