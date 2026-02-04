@@ -23,13 +23,12 @@ from PySide6.QtWidgets import (
     QCheckBox,
 )
 from PySide6.QtGui import QIcon, QAction, QColor
-from PySide6.QtCore import Qt, QEvent
+from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject
 
 from .reader import ReaderCore
 from .settings_store import SettingsStore
 from .settings_controller import SettingsController
 from .style import wrap_html_with_style
-from .auto_hide import AutoHideController
 from .hotkey_manager import HotkeyManager
 
 
@@ -251,11 +250,11 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
-        # Auto-hide controller
-        self.auto_hide = AutoHideController(
-            self._do_hide,
-            delay_ms=self.settings_store.get().get("auto_hide_delay_ms", 600),
-        )
+        # Auto-hide using QTimer (thread-safe for Qt)
+        self._auto_hide_timer = QTimer(self)
+        self._auto_hide_timer.setSingleShot(True)
+        self._auto_hide_timer.timeout.connect(self._do_hide)
+        self._auto_hide_delay = self.settings_store.get().get("auto_hide_delay_ms", 600)
 
         # Hotkey manager
         self.hotkey_manager = HotkeyManager()
@@ -275,13 +274,16 @@ class MainWindow(QMainWindow):
         super().leaveEvent(event)
         # Check if auto-hide is enabled
         if self.settings_store.get().get("auto_hide_enabled", True):
-            self.auto_hide.start_hide_timer()
+            self._auto_hide_delay = self.settings_store.get().get(
+                "auto_hide_delay_ms", 600
+            )
+            self._auto_hide_timer.start(self._auto_hide_delay)
 
     def enterEvent(self, event):
         """Called when mouse enters the window."""
         super().enterEvent(event)
         # Cancel any pending hide timer
-        self.auto_hide.cancel()
+        self._auto_hide_timer.stop()
 
     def import_file_dialog(self) -> None:
         fn, _ = QFileDialog.getOpenFileName(

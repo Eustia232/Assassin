@@ -4,18 +4,34 @@ from pathlib import Path
 
 from .models import Chapter
 
+try:
+    from charset_normalizer import from_bytes
+except ImportError:
+    from_bytes = None
+
 
 CHAPTER_RE = re.compile(r"^(第.*?章|CHAPTER\s+\w+)", re.I | re.M)
 
 
 def detect_encoding(file_path: Path) -> str:
-    """Simple encoding detection fallback. Try utf-8 then cp1252."""
-    try:
-        with file_path.open("r", encoding="utf-8") as f:
-            f.read(1024)
-        return "utf-8"
-    except Exception:
-        return "cp1252"
+    """Detect file encoding using charset_normalizer, fallback to common encodings."""
+    raw = file_path.read_bytes()
+
+    # Try charset_normalizer first
+    if from_bytes is not None:
+        result = from_bytes(raw).best()
+        if result is not None:
+            return result.encoding
+
+    # Fallback: try common encodings
+    for enc in ["utf-8", "gbk", "gb2312", "gb18030", "cp1252"]:
+        try:
+            raw.decode(enc)
+            return enc
+        except Exception:
+            continue
+
+    return "utf-8"  # ultimate fallback
 
 
 def read_text(file_path: Path, encoding: str = None) -> str:
