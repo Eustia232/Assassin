@@ -1,5 +1,9 @@
 2026-02-04
 
+- refactor: replace Import/Settings buttons with keyboard shortcuts
+  - Removed buttons from main window for cleaner UI
+  - Ctrl+O: Open file (Import)
+  - Ctrl+P: Open Settings
 - fix: text area background now transparent (only text is opaque)
   - Modified `style.py` to set body background to transparent
   - Modified `gui.py` QTextBrowser to have transparent background

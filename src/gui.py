@@ -25,7 +25,17 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QFrame,
 )
-from PySide6.QtGui import QIcon, QAction, QColor, QCursor, QPainter, QBrush, QPen
+from PySide6.QtGui import (
+    QIcon,
+    QAction,
+    QColor,
+    QCursor,
+    QPainter,
+    QBrush,
+    QPen,
+    QShortcut,
+    QKeySequence,
+)
 from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject, QPoint, QSize
 
 from .reader import ReaderCore
@@ -415,22 +425,14 @@ class MainWindow(QMainWindow):
         self.reader_view.widget.setAttribute(Qt.WA_TranslucentBackground)
         content_layout.addWidget(self.reader_view.widget, stretch=1)
 
-        # Buttons (right side)
-        btn_layout = QVBoxLayout()
-        btn_layout.setSpacing(5)
-
-        self.import_btn = QPushButton("Import")
-        self.import_btn.clicked.connect(self.import_file_dialog)
-        btn_layout.addWidget(self.import_btn)
-
-        self.settings_btn = QPushButton("Settings")
-        self.settings_btn.clicked.connect(self.open_settings)
-        btn_layout.addWidget(self.settings_btn)
-
-        btn_layout.addStretch()
-        content_layout.addLayout(btn_layout)
-
         main_layout.addLayout(content_layout)
+
+        # Keyboard shortcuts (Ctrl+O for Import, Ctrl+P for Settings)
+        self._shortcut_import = QShortcut(QKeySequence("Ctrl+O"), self)
+        self._shortcut_import.activated.connect(self.import_file_dialog)
+
+        self._shortcut_settings = QShortcut(QKeySequence("Ctrl+P"), self)
+        self._shortcut_settings.activated.connect(self.open_settings)
 
         # Apply initial opacity from settings
         initial_opacity = self.settings_store.get().get("window_opacity", 85)
