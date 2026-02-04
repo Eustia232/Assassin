@@ -33,7 +33,7 @@ from PySide6.QtGui import (
     QPainter,
     QBrush,
 )
-from PySide6.QtCore import Qt, QTimer, QPoint
+from PySide6.QtCore import Qt, QTimer, QPoint, QRect, QSize
 
 from .reader import ReaderCore
 from .settings_store import SettingsStore
@@ -221,13 +221,19 @@ class SettingsDialog(QDialog):
 
 
 class TransparentFrame(QWidget):
-    """A widget that draws a semi-transparent background."""
+    """A widget that draws a semi-transparent background with resize support."""
+
+    EDGE_SIZE = 8  # Pixels from edge to trigger resize
 
     def __init__(self, parent: Optional[QWidget] = None):
         super().__init__(parent)
         self._opacity = 1.0  # 0.0 to 1.0
         self._bg_color = QColor(255, 255, 255)
         self._text_browser: Optional[QTextBrowser] = None
+        self._resize_edge: Optional[str] = None
+        self._resize_start_pos: Optional[QPoint] = None
+        self._resize_start_geometry: Optional[QRect] = None
+        self.setMouseTracking(True)
 
     def set_text_browser(self, browser: QTextBrowser) -> None:
         """Set the text browser to forward wheel events to."""
@@ -250,10 +256,87 @@ class TransparentFrame(QWidget):
     def wheelEvent(self, event) -> None:
         """Forward wheel events to the text browser for scrolling."""
         if self._text_browser:
-            # Forward the event to the text browser's viewport
             self._text_browser.wheelEvent(event)
         else:
             super().wheelEvent(event)
+
+    def _get_edge(self, pos: QPoint) -> Optional[str]:
+        """Detect which edge the mouse is near."""
+        rect = self.rect()
+        x, y = pos.x(), pos.y()
+        edge = ""
+
+        if y < self.EDGE_SIZE:
+            edge += "top"
+        elif y > rect.height() - self.EDGE_SIZE:
+            edge += "bottom"
+
+        if x < self.EDGE_SIZE:
+            edge += "left"
+        elif x > rect.width() - self.EDGE_SIZE:
+            edge += "right"
+
+        return edge if edge else None
+
+    def mousePressEvent(self, event) -> None:
+        if event.button() == Qt.LeftButton:
+            edge = self._get_edge(event.position().toPoint())
+            if edge:
+                self._resize_edge = edge
+                self._resize_start_pos = event.globalPosition().toPoint()
+                self._resize_start_geometry = self.window().geometry()
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event) -> None:
+        if self._resize_edge and self._resize_start_pos and self._resize_start_geometry:
+            # Resizing
+            delta = event.globalPosition().toPoint() - self._resize_start_pos
+            geo = QRect(self._resize_start_geometry)
+            min_w, min_h = 200, 100
+
+            if "right" in self._resize_edge:
+                geo.setWidth(
+                    max(min_w, self._resize_start_geometry.width() + delta.x())
+                )
+            if "bottom" in self._resize_edge:
+                geo.setHeight(
+                    max(min_h, self._resize_start_geometry.height() + delta.y())
+                )
+            if "left" in self._resize_edge:
+                new_left = self._resize_start_geometry.left() + delta.x()
+                new_width = self._resize_start_geometry.width() - delta.x()
+                if new_width >= min_w:
+                    geo.setLeft(new_left)
+            if "top" in self._resize_edge:
+                new_top = self._resize_start_geometry.top() + delta.y()
+                new_height = self._resize_start_geometry.height() - delta.y()
+                if new_height >= min_h:
+                    geo.setTop(new_top)
+
+            self.window().setGeometry(geo)
+            event.accept()
+        else:
+            # Update cursor based on edge
+            edge = self._get_edge(event.position().toPoint())
+            if edge in ("top", "bottom"):
+                self.setCursor(Qt.SizeVerCursor)
+            elif edge in ("left", "right"):
+                self.setCursor(Qt.SizeHorCursor)
+            elif edge in ("topleft", "bottomright"):
+                self.setCursor(Qt.SizeFDiagCursor)
+            elif edge in ("topright", "bottomleft"):
+                self.setCursor(Qt.SizeBDiagCursor)
+            else:
+                self.setCursor(Qt.ArrowCursor)
+            super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event) -> None:
+        self._resize_edge = None
+        self._resize_start_pos = None
+        self._resize_start_geometry = None
+        super().mouseReleaseEvent(event)
 
 
 class TitleBar(QWidget):
