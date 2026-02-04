@@ -234,7 +234,7 @@ class TransparentFrame(QWidget):
 
     def set_opacity(self, opacity: float) -> None:
         self._opacity = max(0.005, min(1.0, opacity))
-        self.update()
+        self.repaint()
 
     def set_bg_color(self, color: QColor) -> None:
         self._bg_color = color
