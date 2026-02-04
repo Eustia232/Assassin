@@ -11,6 +11,7 @@ DEFAULT_SETTINGS = {
     "auto_hide_enabled": True,
     "auto_hide_delay_ms": 600,
     "hotkey": "Ctrl+Shift+H",
+    "window_opacity": 85,  # 0-100, window background opacity (text always opaque)
 }
 
 

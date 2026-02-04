@@ -21,9 +21,12 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QColorDialog,
     QCheckBox,
+    QSlider,
+    QSizePolicy,
+    QFrame,
 )
-from PySide6.QtGui import QIcon, QAction, QColor, QCursor
-from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject, QPoint
+from PySide6.QtGui import QIcon, QAction, QColor, QCursor, QPainter, QBrush, QPen
+from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject, QPoint, QSize
 
 from .reader import ReaderCore
 from .settings_store import SettingsStore
@@ -46,6 +49,149 @@ class QtReaderView:
     def apply_style(self, style) -> None:
         html = wrap_html_with_style(self._inner_html, style)
         self.widget.setHtml(html)
+
+
+class TitleBarButton(QPushButton):
+    """Custom title bar button with hover effects."""
+
+    def __init__(self, text: str, parent: Optional[QWidget] = None):
+        super().__init__(text, parent)
+        self.setFixedSize(40, 30)
+        self.setFlat(True)
+        self._normal_style = """
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                color: #333333;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
+        """
+        self._close_style = """
+            QPushButton {
+                background-color: transparent;
+                border: none;
+                color: #333333;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #e81123;
+                color: white;
+            }
+        """
+        self.setStyleSheet(self._normal_style)
+
+    def set_close_style(self) -> None:
+        self.setStyleSheet(self._close_style)
+
+
+class CustomTitleBar(QWidget):
+    """Custom title bar with drag support and window controls."""
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self.setFixedHeight(35)
+        self.setMouseTracking(True)
+        self._drag_pos: Optional[QPoint] = None
+
+        layout = QHBoxLayout(self)
+        layout.setContentsMargins(10, 0, 0, 0)
+        layout.setSpacing(0)
+
+        # Title label
+        self.title_label = QLabel("Reader")
+        self.title_label.setStyleSheet(
+            "color: #333333; font-size: 13px; font-weight: bold;"
+        )
+        layout.addWidget(self.title_label)
+
+        layout.addStretch()
+
+        # Window control buttons
+        self.minimize_btn = TitleBarButton("─")
+        self.minimize_btn.clicked.connect(self._on_minimize)
+        layout.addWidget(self.minimize_btn)
+
+        self.maximize_btn = TitleBarButton("□")
+        self.maximize_btn.clicked.connect(self._on_maximize)
+        layout.addWidget(self.maximize_btn)
+
+        self.close_btn = TitleBarButton("×")
+        self.close_btn.set_close_style()
+        self.close_btn.clicked.connect(self._on_close)
+        layout.addWidget(self.close_btn)
+
+    def _on_minimize(self) -> None:
+        if self.window():
+            self.window().showMinimized()
+
+    def _on_maximize(self) -> None:
+        if self.window():
+            if self.window().isMaximized():
+                self.window().showNormal()
+                self.maximize_btn.setText("□")
+            else:
+                self.window().showMaximized()
+                self.maximize_btn.setText("❐")
+
+    def _on_close(self) -> None:
+        if self.window():
+            self.window().close()
+
+    def mousePressEvent(self, event) -> None:
+        if event.button() == Qt.LeftButton:
+            self._drag_pos = (
+                event.globalPosition().toPoint()
+                - self.window().frameGeometry().topLeft()
+            )
+            event.accept()
+
+    def mouseMoveEvent(self, event) -> None:
+        if self._drag_pos is not None and event.buttons() == Qt.LeftButton:
+            self.window().move(event.globalPosition().toPoint() - self._drag_pos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event) -> None:
+        self._drag_pos = None
+
+    def mouseDoubleClickEvent(self, event) -> None:
+        if event.button() == Qt.LeftButton:
+            self._on_maximize()
+
+
+class TransparentContainer(QWidget):
+    """Container widget that draws a semi-transparent background."""
+
+    def __init__(self, parent: Optional[QWidget] = None):
+        super().__init__(parent)
+        self._bg_opacity = 0.85  # 0.0 to 1.0
+        self._bg_color = QColor(255, 255, 255)  # White by default
+        self.setAttribute(Qt.WA_TranslucentBackground, False)
+
+    def set_background_opacity(self, opacity: float) -> None:
+        """Set background opacity (0.0 to 1.0)."""
+        self._bg_opacity = max(0.0, min(1.0, opacity))
+        self.update()
+
+    def set_background_color(self, color: QColor) -> None:
+        """Set background color."""
+        self._bg_color = color
+        self.update()
+
+    def paintEvent(self, event) -> None:
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+
+        # Draw semi-transparent background
+        bg_color = QColor(self._bg_color)
+        bg_color.setAlphaF(self._bg_opacity)
+        painter.setBrush(QBrush(bg_color))
+        painter.setPen(QPen(QColor(200, 200, 200, int(255 * self._bg_opacity)), 1))
+        painter.drawRoundedRect(self.rect(), 8, 8)
 
 
 class SettingsDialog(QDialog):
@@ -94,6 +240,18 @@ class SettingsDialog(QDialog):
         self._update_color_button(self.bg_color_btn, self._bg_color)
         self.bg_color_btn.clicked.connect(self._pick_bg_color)
         form.addRow("Background:", self.bg_color_btn)
+
+        # Window opacity slider (0-100)
+        opacity_layout = QHBoxLayout()
+        self.opacity_slider = QSlider(Qt.Horizontal)
+        self.opacity_slider.setRange(0, 100)
+        self.opacity_slider.setValue(self._current_settings.get("window_opacity", 85))
+        self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
+        opacity_layout.addWidget(self.opacity_slider)
+        self.opacity_label = QLabel(f"{self.opacity_slider.value()}%")
+        self.opacity_label.setMinimumWidth(40)
+        opacity_layout.addWidget(self.opacity_label)
+        form.addRow("Window Opacity:", opacity_layout)
 
         # Hotkey
         self.hotkey_edit = QLineEdit()
@@ -177,6 +335,13 @@ class SettingsDialog(QDialog):
             )
             self._update_preview()
 
+    def _on_opacity_changed(self, value):
+        self._current_settings["window_opacity"] = value
+        self.opacity_label.setText(f"{value}%")
+        # Apply immediately for live preview
+        if self.parent() and hasattr(self.parent(), "set_window_opacity"):
+            self.parent().set_window_opacity(value)
+
     def _on_hotkey_changed(self, text):
         self._current_settings["hotkey"] = text
 
@@ -193,8 +358,10 @@ class SettingsDialog(QDialog):
         super().accept()
 
     def reject(self):
-        # Revert preview changes
+        # Revert opacity change
         original = self.settings_controller.get_settings()
+        if self.parent() and hasattr(self.parent(), "set_window_opacity"):
+            self.parent().set_window_opacity(original.get("window_opacity", 85))
         self.settings_controller.apply_settings_to_view()
         super().reject()
 
@@ -206,6 +373,10 @@ class MainWindow(QMainWindow):
         self.resize(900, 600)
         self.setMouseTracking(True)
 
+        # Frameless window with translucent background
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowMinMaxButtonsHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+
         project_root = Path(".").resolve()
         if settings_path is None:
             settings_path = project_root / "settings.json"
@@ -216,19 +387,35 @@ class MainWindow(QMainWindow):
         self.settings_controller = SettingsController(self.settings_store)
         self._current_file: Optional[Path] = None  # Track currently opened file
 
-        # UI layout
-        central = QWidget()
-        central.setMouseTracking(True)
-        self.setCentralWidget(central)
-        h = QHBoxLayout(central)
+        # Main container with transparent background
+        self._container = TransparentContainer()
+        self._container.setMouseTracking(True)
+        self.setCentralWidget(self._container)
+
+        # Main layout inside container
+        main_layout = QVBoxLayout(self._container)
+        main_layout.setContentsMargins(5, 5, 5, 5)
+        main_layout.setSpacing(0)
+
+        # Custom title bar
+        self._title_bar = CustomTitleBar()
+        main_layout.addWidget(self._title_bar)
+
+        # Content area
+        content_layout = QHBoxLayout()
+        content_layout.setContentsMargins(5, 5, 5, 5)
 
         # Reader view (main content area, takes most space)
+        # Text area is always opaque
         self.reader_view = QtReaderView()
         self.reader_view.widget.setMouseTracking(True)
-        h.addWidget(self.reader_view.widget, stretch=1)
+        self.reader_view.widget.setStyleSheet("background-color: white; border: none;")
+        content_layout.addWidget(self.reader_view.widget, stretch=1)
 
         # Buttons (right side)
         btn_layout = QVBoxLayout()
+        btn_layout.setSpacing(5)
+
         self.import_btn = QPushButton("Import")
         self.import_btn.clicked.connect(self.import_file_dialog)
         btn_layout.addWidget(self.import_btn)
@@ -238,7 +425,13 @@ class MainWindow(QMainWindow):
         btn_layout.addWidget(self.settings_btn)
 
         btn_layout.addStretch()
-        h.addLayout(btn_layout)
+        content_layout.addLayout(btn_layout)
+
+        main_layout.addLayout(content_layout)
+
+        # Apply initial opacity from settings
+        initial_opacity = self.settings_store.get().get("window_opacity", 85)
+        self.set_window_opacity(initial_opacity)
 
         # Tray
         self.tray = QSystemTrayIcon(self)
@@ -281,6 +474,21 @@ class MainWindow(QMainWindow):
         # Restore last reading state
         self._restore_reading_state()
 
+    def set_window_opacity(self, opacity_percent: int) -> None:
+        """Set window background opacity (0-100), text remains opaque."""
+        opacity = opacity_percent / 100.0
+        self._container.set_background_opacity(opacity)
+
+        # Update title bar button styles based on opacity
+        alpha = int(255 * max(0.3, opacity))  # Minimum alpha for visibility
+        title_color = f"rgba(51, 51, 51, {alpha})"
+
+        # Keep text area always opaque
+        bg_color = self.settings_store.get().get("bg_color", "#FFFFFF")
+        self.reader_view.widget.setStyleSheet(
+            f"background-color: {bg_color}; border: none;"
+        )
+
     def _check_mouse_position(self) -> None:
         """Check if mouse is outside the entire window (including title bar)."""
         # Don't auto-hide if disabled, dialog is open, or window is hidden
@@ -291,9 +499,7 @@ class MainWindow(QMainWindow):
 
         # Get global mouse position and window geometry
         cursor_pos = QCursor.pos()  # Global mouse position
-        window_rect = (
-            self.frameGeometry()
-        )  # frameGeometry includes title bar and borders
+        window_rect = self.geometry()  # Use geometry for frameless window
 
         # If mouse is outside window bounds, hide immediately
         if not window_rect.contains(cursor_pos):
@@ -315,6 +521,8 @@ class MainWindow(QMainWindow):
         self.reader_core.load_txt(path)
         html = self.reader_core.get_current_chapter_html()
         self.reader_view.set_content(html)
+        # Update title
+        self._title_bar.title_label.setText(f"Reader - {path.name}")
         # ensure style applied
         self.settings_controller.apply_settings_to_view()
 
@@ -355,6 +563,9 @@ class MainWindow(QMainWindow):
         dlg = SettingsDialog(self.settings_controller, self)
         dlg.exec()
         self._dialog_open = False
+        # Re-apply opacity after dialog closes (in case it was changed and saved)
+        opacity = self.settings_store.get().get("window_opacity", 85)
+        self.set_window_opacity(opacity)
 
     def _do_hide(self) -> None:
         try:

@@ -1,5 +1,10 @@
 2026-02-04
 
+- feat: frameless transparent window with adjustable opacity (0-100%)
+  - Added custom title bar with close/minimize/maximize buttons and drag support
+  - Window background opacity adjustable via Settings slider, text always remains opaque
+  - Added `TransparentContainer` widget for semi-transparent background rendering
+  - Added `window_opacity` setting to settings_store defaults
 - fix: auto-hide now detects mouse leaving entire window (including title bar)
   - Changed from `leaveEvent` to polling with `frameGeometry()` which includes window frame
   - Users can now access close/minimize buttons without triggering auto-hide
