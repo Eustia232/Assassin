@@ -51,9 +51,11 @@ def build_css(style: Union[StyleSettings, dict]) -> str:
     if size > 200:
         size = 200
 
+    # Do not apply background color to the document body here — keep the
+    # text area visually independent from the window background (transparent)
     css = (
         f"body {{ font-family: '{font}'; font-size: {size}px; line-height: {line_height}; "
-        f"color: {text_color}; background-color: {bg_color}; padding: 12px; }}"
+        f"color: {text_color}; background-color: transparent; padding: 12px; }}"
     )
     return css
 
