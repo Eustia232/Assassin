@@ -20,9 +20,10 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QDialogButtonBox,
     QColorDialog,
+    QCheckBox,
 )
 from PySide6.QtGui import QIcon, QAction, QColor
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QEvent
 
 from .reader import ReaderCore
 from .settings_store import SettingsStore
@@ -108,6 +109,14 @@ class SettingsDialog(QDialog):
         self.delay_spin.valueChanged.connect(self._on_delay_changed)
         form.addRow("Auto-hide Delay:", self.delay_spin)
 
+        # Auto-hide on mouse leave checkbox
+        self.auto_hide_checkbox = QCheckBox("Hide window when mouse leaves")
+        self.auto_hide_checkbox.setChecked(
+            self._current_settings.get("auto_hide_enabled", True)
+        )
+        self.auto_hide_checkbox.stateChanged.connect(self._on_auto_hide_changed)
+        form.addRow("Auto-hide:", self.auto_hide_checkbox)
+
         layout.addLayout(form)
 
         # Preview area
@@ -174,6 +183,9 @@ class SettingsDialog(QDialog):
     def _on_delay_changed(self, value):
         self._current_settings["auto_hide_delay_ms"] = value
 
+    def _on_auto_hide_changed(self, state):
+        self._current_settings["auto_hide_enabled"] = state == Qt.Checked.value
+
     def accept(self):
         # Persist all settings on OK
         for key, value in self._current_settings.items():
@@ -192,6 +204,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Reader")
         self.resize(900, 600)
+        self.setMouseTracking(True)
 
         project_root = Path(".").resolve()
         if settings_path is None:
@@ -203,11 +216,13 @@ class MainWindow(QMainWindow):
 
         # UI layout
         central = QWidget()
+        central.setMouseTracking(True)
         self.setCentralWidget(central)
         h = QHBoxLayout(central)
 
         # Reader view (main content area, takes most space)
         self.reader_view = QtReaderView()
+        self.reader_view.widget.setMouseTracking(True)
         h.addWidget(self.reader_view.widget, stretch=1)
 
         # Buttons (right side)
@@ -236,11 +251,13 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
 
-        # Auto-hide and hotkey
+        # Auto-hide controller
         self.auto_hide = AutoHideController(
             self._do_hide,
             delay_ms=self.settings_store.get().get("auto_hide_delay_ms", 600),
         )
+
+        # Hotkey manager
         self.hotkey_manager = HotkeyManager()
         hk = self.settings_store.get().get("hotkey")
         if hk:
@@ -252,6 +269,19 @@ class MainWindow(QMainWindow):
         # Link settings controller to view
         self.settings_controller.set_view(self.reader_view)
         self.settings_controller.apply_settings_to_view()
+
+    def leaveEvent(self, event):
+        """Called when mouse leaves the window."""
+        super().leaveEvent(event)
+        # Check if auto-hide is enabled
+        if self.settings_store.get().get("auto_hide_enabled", True):
+            self.auto_hide.start_hide_timer()
+
+    def enterEvent(self, event):
+        """Called when mouse enters the window."""
+        super().enterEvent(event)
+        # Cancel any pending hide timer
+        self.auto_hide.cancel()
 
     def import_file_dialog(self) -> None:
         fn, _ = QFileDialog.getOpenFileName(
