@@ -1,5 +1,6 @@
 2026-02-04
 
+- fix: limit minimum window opacity to 50% (prevents scroll issues at low opacity)
 - fix: scrolling now works with transparent window
   - Added wheel event forwarding from TransparentFrame to QTextBrowser
   - Mouse wheel scrolling works regardless of opacity setting

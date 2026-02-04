@@ -105,10 +105,10 @@ class SettingsDialog(QDialog):
         self.bg_color_btn.clicked.connect(self._pick_bg_color)
         form.addRow("Background:", self.bg_color_btn)
 
-        # Window opacity slider (0-100)
+        # Window opacity slider (50-100)
         opacity_layout = QHBoxLayout()
         self.opacity_slider = QSlider(Qt.Horizontal)
-        self.opacity_slider.setRange(0, 100)
+        self.opacity_slider.setRange(50, 100)
         self.opacity_slider.setValue(self._current_settings.get("window_opacity", 100))
         self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
         opacity_layout.addWidget(self.opacity_slider)
@@ -233,7 +233,7 @@ class TransparentFrame(QWidget):
         self._text_browser = browser
 
     def set_opacity(self, opacity: float) -> None:
-        self._opacity = max(0.0, min(1.0, opacity))
+        self._opacity = max(0.5, min(1.0, opacity))
         self.update()
 
     def set_bg_color(self, color: QColor) -> None:
