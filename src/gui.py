@@ -286,6 +286,8 @@ class MainWindow(QMainWindow):
         self._auto_hide_timer.stop()
 
     def import_file_dialog(self) -> None:
+        # Stop auto-hide timer while dialog is open
+        self._auto_hide_timer.stop()
         fn, _ = QFileDialog.getOpenFileName(
             self, "Open text file", str(Path(".").resolve()), "Text Files (*.txt)"
         )
@@ -300,6 +302,8 @@ class MainWindow(QMainWindow):
         self.settings_controller.apply_settings_to_view()
 
     def open_settings(self) -> None:
+        # Stop auto-hide timer while dialog is open
+        self._auto_hide_timer.stop()
         dlg = SettingsDialog(self.settings_controller, self)
         dlg.exec()
 
