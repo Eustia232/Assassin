@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
     QCheckBox,
 )
 from PySide6.QtGui import QIcon, QAction, QColor
-from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject
+from PySide6.QtCore import Qt, QEvent, QTimer, Signal, QObject, QPoint
 
 from .reader import ReaderCore
 from .settings_store import SettingsStore
@@ -259,6 +259,12 @@ class MainWindow(QMainWindow):
         self._auto_hide_timer.timeout.connect(self._do_hide)
         self._dialog_open = False  # Flag to prevent auto-hide when dialogs are open
 
+        # Mouse tracking timer - checks if mouse is outside window bounds
+        self._mouse_check_timer = QTimer(self)
+        self._mouse_check_timer.setInterval(100)  # Check every 100ms
+        self._mouse_check_timer.timeout.connect(self._check_mouse_position)
+        self._mouse_check_timer.start()
+
         # Hotkey manager
         self.hotkey_manager = HotkeyManager()
         hk = self.settings_store.get().get("hotkey")
@@ -275,21 +281,23 @@ class MainWindow(QMainWindow):
         # Restore last reading state
         self._restore_reading_state()
 
-    def leaveEvent(self, event):
-        """Called when mouse leaves the window."""
-        super().leaveEvent(event)
-        # Don't auto-hide if a dialog is open
-        if self._dialog_open:
+    def _check_mouse_position(self) -> None:
+        """Check if mouse is outside the entire window (including title bar)."""
+        # Don't auto-hide if disabled, dialog is open, or window is hidden
+        if self._dialog_open or not self.isVisible():
             return
-        # Check if auto-hide is enabled - hide immediately (no delay)
-        if self.settings_store.get().get("auto_hide_enabled", True):
-            self.hide()
+        if not self.settings_store.get().get("auto_hide_enabled", True):
+            return
 
-    def enterEvent(self, event):
-        """Called when mouse enters the window."""
-        super().enterEvent(event)
-        # Cancel any pending hide timer
-        self._auto_hide_timer.stop()
+        # Get global mouse position and window geometry
+        cursor_pos = QApplication.instance().cursor().pos()
+        window_rect = (
+            self.frameGeometry()
+        )  # frameGeometry includes title bar and borders
+
+        # If mouse is outside window bounds, hide immediately
+        if not window_rect.contains(cursor_pos):
+            self.hide()
 
     def import_file_dialog(self) -> None:
         # Prevent auto-hide while dialog is open

@@ -1,5 +1,8 @@
 2026-02-04
 
+- fix: auto-hide now detects mouse leaving entire window (including title bar)
+  - Changed from `leaveEvent` to polling with `frameGeometry()` which includes window frame
+  - Users can now access close/minimize buttons without triggering auto-hide
 - feat: add reading state persistence (last file + scroll position)
   - Added: `src/reading_state.py`, `tests/test_reading_state.py`
   - Modified: `src/gui.py` (restore state on startup, save on close)
