@@ -47,3 +47,12 @@ class ReaderCore:
     def get_current_chapter_index(self) -> int:
         """Return current chapter index (0-based)."""
         return self.current_index
+
+    def set_chapter_index(self, index: int) -> bool:
+        """Set current chapter index. Returns True if valid, False otherwise."""
+        if not self.chapters:
+            return False
+        if 0 <= index < len(self.chapters):
+            self.current_index = index
+            return True
+        return False

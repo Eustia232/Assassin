@@ -78,3 +78,45 @@ def test_chapter_navigation_empty():
     assert r.get_current_chapter_index() == 0
     assert r.next_chapter() is False
     assert r.prev_chapter() is False
+
+
+def test_set_chapter_index(tmp_path: Path):
+    """Test set_chapter_index for restoring reading position."""
+    p = tmp_path / "chapters.txt"
+    content = """第一章 开始
+内容一
+
+第二章 发展
+内容二
+
+第三章 结局
+内容三
+"""
+    p.write_text(content, encoding="utf-8")
+
+    r = ReaderCore()
+    r.load_txt(p)
+
+    assert r.get_chapter_count() == 3
+
+    # Set to valid index
+    assert r.set_chapter_index(2) is True
+    assert r.get_current_chapter_index() == 2
+
+    assert r.set_chapter_index(0) is True
+    assert r.get_current_chapter_index() == 0
+
+    # Set to invalid index (out of range)
+    assert r.set_chapter_index(10) is False
+    assert r.get_current_chapter_index() == 0  # unchanged
+
+    assert r.set_chapter_index(-1) is False
+    assert r.get_current_chapter_index() == 0  # unchanged
+
+
+def test_set_chapter_index_empty():
+    """Test set_chapter_index with no file loaded."""
+    r = ReaderCore()
+
+    assert r.set_chapter_index(0) is False
+    assert r.set_chapter_index(1) is False

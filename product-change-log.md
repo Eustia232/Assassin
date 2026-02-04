@@ -1,4 +1,10 @@
-2026-02-04
+-2026-02-04
+
+- feat: persist and restore reading position across chapters
+  - Save `chapter_index` and `scroll_position` immediately after chapter navigation
+  - Restore saved `chapter_index` when reopening the last file and apply saved scroll position
+  - Files changed: `src/gui.py`, `src/reader.py`, `src/reading_state.py`
+  - Added tests: `tests/test_chapter_navigation.py` (navigation + set index checks)
 
 - feat: add chapter navigation (next/prev chapter)
   - Added `next_chapter()`, `prev_chapter()`, `get_chapter_count()`, `get_current_chapter_index()` methods to ReaderCore

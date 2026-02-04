@@ -589,6 +589,8 @@ class MainWindow(QMainWindow):
             self._update_title_bar()
             # Scroll to top of new chapter
             self.reader_view.widget.verticalScrollBar().setValue(0)
+            # Save reading state after chapter change
+            self._save_reading_state()
 
     def go_prev_chapter(self) -> None:
         """Navigate to previous chapter."""
@@ -599,9 +601,11 @@ class MainWindow(QMainWindow):
             self._update_title_bar()
             # Scroll to top of new chapter
             self.reader_view.widget.verticalScrollBar().setValue(0)
+            # Save reading state after chapter change
+            self._save_reading_state()
 
     def _restore_reading_state(self) -> None:
-        """Restore last opened file, scroll position, and window geometry on startup."""
+        """Restore last opened file, chapter, scroll position, and window geometry on startup."""
         state = self.reading_state.get_state()
 
         # Restore window geometry
@@ -614,6 +618,16 @@ class MainWindow(QMainWindow):
         if last_file:
             try:
                 self.open_text_file(last_file)
+
+                # Restore chapter index
+                chapter_idx = state.get("chapter_index", 0)
+                if chapter_idx > 0 and self.reader_core.set_chapter_index(chapter_idx):
+                    # Reload the correct chapter content
+                    html = self.reader_core.get_current_chapter_html()
+                    self.reader_view.set_content(html)
+                    self.settings_controller.apply_settings_to_view()
+                    self._update_title_bar()
+
                 # Restore scroll position after content is loaded
                 # Use QTimer to delay until content is rendered
                 scroll_pos = state.get("scroll_position", 0)
