@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+.venv/
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+
+# PyInstaller build artifacts
+build/
+dist/
+*.spec
+
+# Batch scripts (local convenience scripts)
+*.bat
+
+# Runtime / user-specific state
+reading_state.json
+settings.json
+
+# Test artifacts
+test_import.txt
+
+# Environment / secrets
+.env
+.env.*

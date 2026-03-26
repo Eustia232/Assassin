@@ -1,3 +1,10 @@
+2026-03-26
+
+- chore: add root `.gitignore` and remove tracked build artifacts/caches
+  - Added `.gitignore` covering Python caches, `.venv/`, tool caches, PyInstaller artifacts (`build/`, `dist/`, `*.spec`), batch scripts, runtime state files, and `.env`
+  - Removed 35 previously tracked files from git index (`build/`, `dist/main.exe`, `main.spec`, `__pycache__/` dirs)
+  - Files changed: `.gitignore` (new)
+
 -2026-02-04
 
 - feat: persist and restore reading position across chapters
