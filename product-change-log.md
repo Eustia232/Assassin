@@ -1,5 +1,14 @@
 2026-03-26
 
+- refactor: remove unused packager.py
+  - Deleted `src/packager.py` as it is dead code replaced by `freeze.bat`
+  - Verified no existing references in the codebase
+
+- chore: remove slow PyInstaller packaging tests
+  - Deleted `tests/test_packaging_smoke.py`, `tests/test_packaging_instructions.py`, and `tests/test_packager.py`
+  - These tests were too slow for daily iterative development and provided low value
+  - Source file `src/packager.py` is preserved for now
+
 - fix: restore window opacity from saved value on startup instead of resetting to 100%
   - Removed `window_opacity: 100` from startup override in `src/gui.py`
   - Startup now reads saved opacity from `settings.json` and applies it (consistent with font/color behavior)
