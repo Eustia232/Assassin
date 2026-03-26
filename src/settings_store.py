@@ -11,7 +11,7 @@ DEFAULT_SETTINGS = {
     "auto_hide_enabled": False,  # Disabled by default
     "auto_hide_delay_ms": 600,
     "hotkey": "Ctrl+Shift+H",
-    "window_opacity": 100,  # 0-100, reset to 100 on each startup
+    "window_opacity": 100,  # 0-100, persisted across restarts
 }
 
 

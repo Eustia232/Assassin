@@ -1,5 +1,11 @@
 2026-03-26
 
+- fix: restore window opacity from saved value on startup instead of resetting to 100%
+  - Removed `window_opacity: 100` from startup override in `src/gui.py`
+  - Startup now reads saved opacity from `settings.json` and applies it (consistent with font/color behavior)
+  - Updated default comment in `src/settings_store.py`
+  - Files changed: `src/gui.py`, `src/settings_store.py`
+
 - chore: add root `.gitignore` and remove tracked build artifacts/caches
   - Added `.gitignore` covering Python caches, `.venv/`, tool caches, PyInstaller artifacts (`build/`, `dist/`, `*.spec`), batch scripts, runtime state files, and `.env`
   - Removed 35 previously tracked files from git index (`build/`, `dist/main.exe`, `main.spec`, `__pycache__/` dirs)

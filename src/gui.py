@@ -416,10 +416,8 @@ class MainWindow(QMainWindow):
         self.settings_controller = SettingsController(self.settings_store)
         self._current_file: Optional[Path] = None  # Track currently opened file
 
-        # Reset auto-hide and opacity on each startup
-        self.settings_store.save(
-            {"auto_hide_enabled": False, "window_opacity": 100}, debounce_ms=0
-        )
+        # Reset auto-hide on each startup (opacity is restored from saved value)
+        self.settings_store.save({"auto_hide_enabled": False}, debounce_ms=0)
 
         # Transparent frame as central widget
         self._frame = TransparentFrame()
@@ -469,8 +467,9 @@ class MainWindow(QMainWindow):
         self._shortcut_next = QShortcut(QKeySequence(Qt.Key_Right), self)
         self._shortcut_next.activated.connect(self.go_next_chapter)
 
-        # Apply window opacity (100% on startup)
-        self.setWindowOpacity(1.0)
+        # Apply window opacity (restore saved value)
+        _saved_opacity = self.settings_store.get().get("window_opacity", 100)
+        self.set_window_opacity(_saved_opacity)
 
         # Tray
         self.tray = QSystemTrayIcon(self)
