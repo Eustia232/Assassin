@@ -22,6 +22,8 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QCheckBox,
     QSlider,
+    QListWidget,
+    QListWidgetItem,
 )
 from PySide6.QtGui import (
     QIcon,
@@ -75,6 +77,46 @@ class QtReaderView:
 
         # Restore scroll position
         scrollbar.setValue(scroll_pos)
+
+
+class ChapterListDialog(QDialog):
+    """Dialog to display and select chapters."""
+
+    def __init__(self, chapters: list[str], current_index: int, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Chapter List")
+        self.resize(400, 500)
+
+        layout = QVBoxLayout(self)
+
+        self.list_widget = QListWidget()
+        layout.addWidget(self.list_widget)
+
+        for chapter in chapters:
+            self.list_widget.addItem(chapter)
+
+        if 0 <= current_index < len(chapters):
+            self.list_widget.setCurrentRow(current_index)
+            item = self.list_widget.item(current_index)
+            if item:
+                self.list_widget.scrollToItem(
+                    item, QListWidget.ScrollHint.PositionAtCenter
+                )
+
+        self.list_widget.itemDoubleClicked.connect(self.accept)
+
+        self._shortcut_enter = QShortcut(QKeySequence(Qt.Key_Return), self)
+        self._shortcut_enter.activated.connect(self.accept)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def get_selected_index(self) -> int:
+        return self.list_widget.currentRow()
 
 
 class SettingsDialog(QDialog):
@@ -467,6 +509,10 @@ class MainWindow(QMainWindow):
         self._shortcut_next = QShortcut(QKeySequence(Qt.Key_Right), self)
         self._shortcut_next.activated.connect(self.go_next_chapter)
 
+        # Chapter list shortcut (Ctrl+I)
+        self._shortcut_toc = QShortcut(QKeySequence("Ctrl+I"), self)
+        self._shortcut_toc.activated.connect(self.open_chapter_list)
+
         # Apply window opacity (restore saved value)
         _saved_opacity = self.settings_store.get().get("window_opacity", 100)
         self.set_window_opacity(_saved_opacity)
@@ -673,6 +719,32 @@ class MainWindow(QMainWindow):
             # Dialog accepted - apply opacity from dialog's settings
             opacity = dlg._current_settings.get("window_opacity", 100)
             self.set_window_opacity(opacity)
+        self._dialog_open = False
+
+    def open_chapter_list(self) -> None:
+        """Open chapter list dialog."""
+        chapters = self.reader_core.chapters
+        if not chapters:
+            return
+
+        chapter_titles = [c.title for c in chapters]
+        current_index = self.reader_core.current_index
+
+        self._dialog_open = True
+        self._auto_hide_timer.stop()
+
+        dlg = ChapterListDialog(chapter_titles, current_index, self)
+        if dlg.exec():
+            idx = dlg.get_selected_index()
+            if 0 <= idx < len(chapters) and idx != current_index:
+                if self.reader_core.set_chapter_index(idx):
+                    html = self.reader_core.get_current_chapter_html()
+                    self.reader_view.set_content(html)
+                    self.settings_controller.apply_settings_to_view()
+                    self._update_title_bar()
+                    self.reader_view.widget.verticalScrollBar().setValue(0)
+                    self._save_reading_state()
+
         self._dialog_open = False
 
     def _do_hide(self) -> None:

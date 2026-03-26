@@ -8,15 +8,16 @@ This document provides essential instructions for AI coding agents operating in 
 - **CRITICAL**: Every response or significant action must be ended by the phrase: `elo psy congroo`. This ensures context continuity and rule adherence.
 
 ### Change Management
-- **Change Log**: Every code modification MUST be recorded in `product-change-log.md` by appending to the top (under the current date). Do NOT overwrite existing entries.
+- **Change Log**: Every code modification MUST be recorded in `docs/product-change-log.md` by appending to the top (under the current date). Do NOT overwrite existing entries.
 - **Git Workflow**: Always work on and commit to the `dev` branch. Use Conventional Commits (e.g., `feat:`, `fix:`, `refactor:`, `docs:`).
 
 ### Dependency Rules
-- **Strict Rule**: Use `uv add` to manage project dependencies; do NOT manually edit `pyproject.toml`.
-- **Procedure**:
-  1. Run `uv add <package>` to add a dependency (for example: `uv add requests`).
-  2. Run `uv sync` if needed to update the lockfile and environment.
-  3. Commit `uv.lock`. Avoid manual edits to `pyproject.toml`; if tooling updates `pyproject.toml` automatically, review those changes before committing.
+- **Strict Rule**: DO NOT manually edit `pyproject.toml` or `uv.lock` for dependency changes.
+- **Procedure**: 
+  1. Use `uv add <package>` to add production dependencies.
+  2. Use `uv add --dev <package>` to add non-production (development) dependencies. Do NOT use `uvx` for this.
+  3. Use `uv remove <package>` to remove dependencies.
+  4. Commit both `pyproject.toml` and `uv.lock` after changes.
 
 ---
 
@@ -85,12 +86,21 @@ This document provides essential instructions for AI coding agents operating in 
 
 ---
 
+## 3. Architecture Overview
 
+The project follows a decoupled layered architecture:
 
-## 3. Agent Workflow Guidelines
+1.  **Interface Layer (`src/cli/`)**: Handles `Typer` commands and `Rich` terminal rendering. No business logic should reside here.
+2.  **Service/Logic Layer (`src/core/`)**: Contains the FSRS algorithm, word deduplication, and file processing logic.
+3.  **Data/Persistence Layer (`src/data/`)**: Manages Pydantic models and file I/O (Repository pattern).
+4.  **Storage (`data_store/`)**: Contains `words.yaml` (static word data) and `progress.json` (FSRS state).
+
+---
+
+## 4. Agent Workflow Guidelines
 
 ### Step 1: Understand
-Read `AGENTS.md` for project status and `docs/plans/` for the next tasks. Use `grep` to find existing patterns.
+Read `docs/background.md` for the project background and context. Read `AGENTS.md` for project status and `docs/plans/` for the next tasks. Use `grep` to find existing patterns.
 
 ### Step 2: Plan & Execute
 Implement logic following the TDD (Test-Driven Development) approach:
@@ -102,7 +112,7 @@ Implement logic following the TDD (Test-Driven Development) approach:
 - Before executing any run/build/change cycle, the agent MUST consult the `brainstorming` skill (named `brainstorming` in the skills list) and follow its guidance when planning creative or non-trivial changes. This is required for every run that leads to feature work, architecture changes, or code modifications.
 
 ### Step 3: Record & Commit
-1. Update `product-change-log.md` with your changes.
+1. Update `docs/product-change-log.md` with your changes.
 2. `git add` the files (ensure no secrets or `.env` files).
 3. `git commit -m "type: brief description"` on the `dev` branch.
 

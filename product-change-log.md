@@ -1,5 +1,10 @@
 2026-03-26
 
+- feat: added `Ctrl+I` hotkey and `ChapterListDialog` to navigate the table of contents.
+  - Implemented `ChapterListDialog` with a `QListWidget` to display chapters and support double-click/enter selection.
+  - Added `Ctrl+I` shortcut in `MainWindow` to trigger the chapter list dialog.
+  - Added unit test `test_chapter_list_dialog` in `tests/test_chapter_navigation.py` to verify dialog behavior.
+
 - refactor: remove unused packager.py
   - Deleted `src/packager.py` as it is dead code replaced by `freeze.bat`
   - Verified no existing references in the codebase

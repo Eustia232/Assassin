@@ -120,3 +120,25 @@ def test_set_chapter_index_empty():
 
     assert r.set_chapter_index(0) is False
     assert r.set_chapter_index(1) is False
+
+
+def test_chapter_list_dialog():
+    """Test ChapterListDialog functionality."""
+    from PySide6.QtWidgets import QApplication
+    from src.gui import ChapterListDialog
+
+    app = QApplication.instance() or QApplication([])
+
+    chapters = ["Chapter 1", "Chapter 2", "Chapter 3"]
+    dialog = ChapterListDialog(chapters, 1)
+
+    # Check if list is populated correctly
+    assert dialog.list_widget.count() == 3
+    assert dialog.list_widget.item(0).text() == "Chapter 1"
+
+    # Check if current index is selected
+    assert dialog.list_widget.currentRow() == 1
+
+    # Test changing selection
+    dialog.list_widget.setCurrentRow(2)
+    assert dialog.get_selected_index() == 2

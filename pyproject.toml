@@ -10,8 +10,13 @@ dependencies = [
     "pydantic>=2.12.5",
     "pyinstaller>=6.18.0",
     "pyside6>=6.10.2",
-    "pytest>=9.0.2",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+    "ruff>=0.15.7",
+]
