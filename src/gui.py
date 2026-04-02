@@ -495,6 +495,11 @@ class MainWindow(QMainWindow):
         # Connect text browser to frame for wheel event forwarding
         self._frame.set_text_browser(self.reader_view.widget)
 
+        # Connect scroll signal to update title bar percentage
+        self.reader_view.widget.verticalScrollBar().valueChanged.connect(
+            self._update_title_bar
+        )
+
         # Keyboard shortcuts (Ctrl+O for Import, Ctrl+P for Settings)
         self._shortcut_import = QShortcut(QKeySequence("Ctrl+O"), self)
         self._shortcut_import.activated.connect(self.import_file_dialog)
@@ -610,7 +615,7 @@ class MainWindow(QMainWindow):
         self.settings_controller.apply_settings_to_view()
 
     def _update_title_bar(self) -> None:
-        """Update title bar with file name and chapter info."""
+        """Update title bar with file name, chapter info, and scroll percentage."""
         if not self._current_file:
             self._title_bar.title_label.setText("Reader")
             return
@@ -618,12 +623,23 @@ class MainWindow(QMainWindow):
         current = (
             self.reader_core.get_current_chapter_index() + 1
         )  # 1-based for display
+
+        # Calculate scroll percentage within current chapter
+        scrollbar = self.reader_view.widget.verticalScrollBar()
+        max_val = scrollbar.maximum()
+        if max_val > 0:
+            percentage = int(scrollbar.value() * 100 / max_val)
+        else:
+            percentage = 100  # Content fits without scrolling
+
         if total > 1:
             self._title_bar.title_label.setText(
-                f"Reader - {self._current_file.name} [{current}/{total}]"
+                f"Reader - {self._current_file.name} [{current}/{total}] {percentage}%"
             )
         else:
-            self._title_bar.title_label.setText(f"Reader - {self._current_file.name}")
+            self._title_bar.title_label.setText(
+                f"Reader - {self._current_file.name} {percentage}%"
+            )
 
     def go_next_chapter(self) -> None:
         """Navigate to next chapter."""
