@@ -23,11 +23,15 @@ jobs:
         run: uv sync --frozen
       - name: Build Windows binary
         run: uv run pyinstaller main.py --onefile --noconsole --name "Assassin-${{ github.ref_name }}-windows"
+      - name: Package Windows zip
+        run: |
+          Rename-Item "dist\Assassin-${{ github.ref_name }}-windows.exe" "Assassin.exe"
+          Compress-Archive -Path "dist\Assassin.exe" -DestinationPath "dist\Assassin-${{ github.ref_name }}-windows.zip"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: assassin-windows
-          path: dist/Assassin-${{ github.ref_name }}-windows.exe
+          path: dist/Assassin-${{ github.ref_name }}-windows.zip
 
   build-linux:
     runs-on: ubuntu-latest
@@ -83,7 +87,7 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           set -e
-          windows_file="artifacts/Assassin-${TAG}-windows.exe"
+          windows_file="artifacts/Assassin-${TAG}-windows.zip"
           linux_file="artifacts/Assassin-${TAG}-linux"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$windows_file" "$linux_file" --clobber

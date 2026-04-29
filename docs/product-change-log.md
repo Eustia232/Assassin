@@ -2,6 +2,9 @@
 
 ## 2026-04-29
 
+### feat: Package Windows release as zip
+- Publish a zip containing Assassin.exe for Windows releases
+
 ### fix: Add checkout step for release job
 - Ensure release job runs inside a git repo for gh release commands
 
