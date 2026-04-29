@@ -1,5 +1,14 @@
 # Product Change Log
 
+## 2026-04-29
+
+### feat: Add tag-based release workflow
+- Added GitHub Actions workflow to build Windows/Linux packages on tag push
+- Publishes a GitHub Release with both binaries attached
+
+### docs: Add tag-based release packaging design
+- Documented GitHub Actions workflow for Windows/Linux packaging on tag push
+
 ## 2026-04-02
 
 ### feat: Display scroll percentage in title bar
@@ -7,8 +16,3 @@
 - Format: `Reader - filename.txt [1/10] 30%`
 - Percentage updates dynamically as user scrolls through the chapter
 - Shows `100%` when content fits without scrolling, `0%` at top, `100%` at bottom
-
-## 2026-04-29
-
-### docs: Add tag-based release packaging design
-- Documented GitHub Actions workflow for Windows/Linux packaging on tag push
