@@ -1,9 +1,13 @@
-Assassin Reader
+# Assassin Reader
 
-Minimal reader app for testing features: parsing, settings persistence, simple UI stubs, packaging.
+一个简洁的浮窗阅读器，支持 .txt 文件。
 
-Run tests:
+## 快捷键
 
-```
-uv run pytest -q
-```
+| 快捷键 | 功能 |
+|---|---|
+| `Ctrl+O` | 打开文件 |
+| `Ctrl+I` | 打开章节列表 |
+| `← / →` | 上一章 / 下一章 |
+| `Ctrl+P` | 打开设置 |
+| `Ctrl+Shift+H` | 显示 / 隐藏窗口（可在设置中自定义） |

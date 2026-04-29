@@ -1,1 +1,8 @@
-Hello World
+欢迎使用 Assassin Reader
+
+快捷键：
+  Ctrl+O        打开文件
+  Ctrl+I        章节列表
+  ← / →         上一章 / 下一章
+  Ctrl+P        设置
+  Ctrl+Shift+H  显示 / 隐藏窗口（可在设置中更改）
