@@ -14,7 +14,7 @@ def test_load_and_render(tmp_path: Path):
     p.write_text("第1章 测试\n内容一\n第2章 二\n内容二", encoding="utf-8")
 
     reader = ReaderCore()
-    reader.load_txt(p)
+    reader.load_txt(p, chapter_pattern=r"^第\d+章")
     html = reader.get_current_chapter_html()
     # wrap with default style
     wrapped = wrap_html_with_style(html, {})

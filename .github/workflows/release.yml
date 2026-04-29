@@ -26,7 +26,9 @@ jobs:
       - name: Package Windows zip
         run: |
           Rename-Item "dist\Assassin-${{ github.ref_name }}-windows.exe" "Assassin.exe"
-          Compress-Archive -Path "dist\Assassin.exe" -DestinationPath "dist\Assassin-${{ github.ref_name }}-windows.zip"
+          if (-Not (Test-Path "dist\assets")) { New-Item -ItemType Directory -Path "dist\assets" | Out-Null }
+          Copy-Item -Recurse -Force "assets\*" "dist\assets\"
+          Compress-Archive -Path "dist\Assassin.exe", "dist\assets" -DestinationPath "dist\Assassin-${{ github.ref_name }}-windows.zip"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

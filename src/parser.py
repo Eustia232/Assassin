@@ -1,16 +1,14 @@
-from typing import List
+from typing import List, Optional
 import re
 from pathlib import Path
 
 from .models import Chapter
+from .regex_rules import DEFAULT_CHAPTER_REGEX
 
 try:
     from charset_normalizer import from_bytes
 except ImportError:
     from_bytes = None
-
-
-CHAPTER_RE = re.compile(r"^(第.*?章|CHAPTER\s+\w+)", re.I | re.M)
 
 
 def detect_encoding(file_path: Path) -> str:
@@ -41,13 +39,15 @@ def read_text(file_path: Path, encoding: str = None) -> str:
         return f.read()
 
 
-def split_into_chapters(text: str) -> List[Chapter]:
-    """Split text into chapters using CHAPTER_RE. More robust than split() approach.
+def split_into_chapters(text: str, chapter_pattern: Optional[str] = None) -> List[Chapter]:
+    """Split text into chapters using a regex pattern. More robust than split() approach.
 
     Finds chapter headings and slices text between them. If no headings found,
     falls back to chunking by size.
     """
-    matches = list(CHAPTER_RE.finditer(text))
+    pattern = chapter_pattern or DEFAULT_CHAPTER_REGEX
+    chapter_re = re.compile(pattern, re.I | re.M)
+    matches = list(chapter_re.finditer(text))
     if not matches:
         # fallback: chunk by size (~10k chars)
         return [
@@ -64,7 +64,7 @@ def split_into_chapters(text: str) -> List[Chapter]:
             chapters.append(Chapter(title="Intro", text=pre))
 
     for idx, m in enumerate(matches):
-        title = (m.group(1) or m.group(0)).strip()
+        title = m.group(0).strip()
         start = m.end()
         end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
         body = text[start:end].strip()

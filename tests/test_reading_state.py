@@ -131,3 +131,17 @@ class TestReadingState:
         # Should return defaults
         assert result["last_file"] is None
         assert result["chapter_index"] == 0
+
+    def test_reset_position(self, tmp_path: Path) -> None:
+        state_file = tmp_path / "reading_state.json"
+        test_txt = tmp_path / "book.txt"
+        test_txt.write_text("content", encoding="utf-8")
+
+        state = ReadingState(path=state_file)
+        state.save_state(file_path=test_txt, chapter_index=3, scroll_position=500)
+
+        state.reset_position(test_txt)
+
+        result = state.get_state()
+        assert result["chapter_index"] == 0
+        assert result["scroll_position"] == 0

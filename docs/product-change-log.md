@@ -2,6 +2,11 @@
 
 ## 2026-04-29
 
+### feat: Add external regex rules with Ctrl+U selector
+- Load chapter split rules from assets/regex text files and allow switching via Ctrl+U
+- Reset reading position to the first chapter when a rule changes, with safe fallbacks on invalid rules
+- Package Windows release with assets folder alongside the exe
+
 ### feat: Allow window opacity down to 0.1%
 - Replaced integer slider with a decimal control and lowered minimum opacity
 
