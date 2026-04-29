@@ -2,6 +2,9 @@
 
 ## 2026-04-29
 
+### fix: Add checkout step for release job
+- Ensure release job runs inside a git repo for gh release commands
+
 ### feat: Add tag-based release workflow
 - Added GitHub Actions workflow to build Windows/Linux packages on tag push
 - Publishes a GitHub Release with both binaries attached
