@@ -7,3 +7,8 @@
 - Format: `Reader - filename.txt [1/10] 30%`
 - Percentage updates dynamically as user scrolls through the chapter
 - Shows `100%` when content fits without scrolling, `0%` at top, `100%` at bottom
+
+## 2026-04-29
+
+### docs: Add tag-based release packaging design
+- Documented GitHub Actions workflow for Windows/Linux packaging on tag push

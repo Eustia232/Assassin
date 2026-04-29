@@ -26,6 +26,9 @@ settings.json
 # Test artifacts
 test_import.txt
 
+# Git worktrees
+.worktrees/
+
 # Environment / secrets
 .env
 .env.*
