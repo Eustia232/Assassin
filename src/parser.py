@@ -64,7 +64,7 @@ def split_into_chapters(text: str, chapter_pattern: Optional[str] = None) -> Lis
             chapters.append(Chapter(title="Intro", text=pre))
 
     for idx, m in enumerate(matches):
-        title = m.group(0).strip()
+        title = (m.group(1) if m.groups() else m.group(0)).strip()
         start = m.end()
         end = matches[idx + 1].start() if idx + 1 < len(matches) else len(text)
         body = text[start:end].strip()

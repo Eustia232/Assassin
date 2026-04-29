@@ -2,6 +2,11 @@
 
 ## 2026-04-29
 
+### feat: Support regex capture group for chapter titles
+- Updated `src/parser.py` to use capture group 1 (`m.group(1)`) as the chapter title if present, falling back to full match. This allows stripping unwanted prefixes/suffixes from the displayed chapter list.
+- Added `assets/regex/三国志.txt` with a regex rule to extract chapter names across multiple lines.
+- Updated `README.md` to document the new regex capture group feature and `Ctrl+U` shortcut.
+
 ### feat: Add external regex rules with Ctrl+U selector
 - Load chapter split rules from assets/regex text files and allow switching via Ctrl+U
 - Reset reading position to the first chapter when a rule changes, with safe fallbacks on invalid rules
