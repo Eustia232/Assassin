@@ -24,6 +24,7 @@ from PySide6.QtWidgets import (
     QSlider,
     QListWidget,
     QListWidgetItem,
+    QDoubleSpinBox,
 )
 from PySide6.QtGui import (
     QIcon,
@@ -162,15 +163,17 @@ class SettingsDialog(QDialog):
 
         # Background color setting removed — background handled by window/frame
 
-        # Window opacity slider (1-100)
+        # Window opacity control (0.1-100)
         opacity_layout = QHBoxLayout()
-        self.opacity_slider = QSlider(Qt.Horizontal)
-        self.opacity_slider.setRange(1, 100)
-        self.opacity_slider.setValue(self._current_settings.get("window_opacity", 100))
-        self.opacity_slider.valueChanged.connect(self._on_opacity_changed)
-        opacity_layout.addWidget(self.opacity_slider)
-        self.opacity_label = QLabel(f"{self.opacity_slider.value()}%")
-        self.opacity_label.setMinimumWidth(40)
+        self.opacity_spin = QDoubleSpinBox()
+        self.opacity_spin.setRange(0.1, 100.0)
+        self.opacity_spin.setSingleStep(0.1)
+        self.opacity_spin.setDecimals(1)
+        self.opacity_spin.setValue(self._current_settings.get("window_opacity", 100))
+        self.opacity_spin.valueChanged.connect(self._on_opacity_changed)
+        opacity_layout.addWidget(self.opacity_spin)
+        self.opacity_label = QLabel(f"{self.opacity_spin.value():.1f}%")
+        self.opacity_label.setMinimumWidth(50)
         opacity_layout.addWidget(self.opacity_label)
         form.addRow("Window Opacity:", opacity_layout)
 
@@ -241,7 +244,7 @@ class SettingsDialog(QDialog):
 
     def _on_opacity_changed(self, value):
         self._current_settings["window_opacity"] = value
-        self.opacity_label.setText(f"{value}%")
+        self.opacity_label.setText(f"{value:.1f}%")
         # Apply immediately for live preview
         if self._main_window and hasattr(self._main_window, "set_window_opacity"):
             self._main_window.set_window_opacity(value)
@@ -287,7 +290,7 @@ class TransparentFrame(QWidget):
         self._text_browser = browser
 
     def set_opacity(self, opacity: float) -> None:
-        self._opacity = max(0.005, min(1.0, opacity))
+        self._opacity = max(0.001, min(1.0, opacity))
         self.repaint()
 
     def set_bg_color(self, color: QColor) -> None:
@@ -568,10 +571,12 @@ class MainWindow(QMainWindow):
 
         # Restore last reading state
         self._restore_reading_state()
+        if not self._current_file:
+            self._show_welcome_message()
 
-    def set_window_opacity(self, opacity_percent: int) -> None:
+    def set_window_opacity(self, opacity_percent: float) -> None:
         """Set window background opacity (0-100). Text remains opaque."""
-        opacity_percent = max(0, min(100, opacity_percent))
+        opacity_percent = max(0.0, min(100.0, opacity_percent))
         opacity = opacity_percent / 100.0
         self._frame.set_opacity(opacity)
         self._frame.repaint()
@@ -698,6 +703,23 @@ class MainWindow(QMainWindow):
                     )
             except Exception:
                 pass  # File might be corrupted or inaccessible
+
+    def _load_welcome_text(self) -> str:
+        app_dir = get_app_dir()
+        welcome_path = app_dir / "assets" / "welcome.txt"
+        try:
+            return welcome_path.read_text(encoding="utf-8")
+        except Exception:
+            return "Hello World"
+
+    def _show_welcome_message(self) -> None:
+        text = self._load_welcome_text()
+        if not text.strip():
+            text = "Hello World"
+        html = f"<div>{text.replace('\n', '<br/>')}</div>"
+        self.reader_view.set_content(html)
+        self.settings_controller.apply_settings_to_view()
+        self._update_title_bar()
 
     def _set_scroll_position(self, pos: int) -> None:
         """Set scroll position (called after content is rendered)."""

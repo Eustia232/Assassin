@@ -2,6 +2,12 @@
 
 ## 2026-04-29
 
+### feat: Allow window opacity down to 0.1%
+- Replaced integer slider with a decimal control and lowered minimum opacity
+
+### feat: Show welcome text when no file is selected
+- Added a default welcome message loaded from assets for empty reader state
+
 ### feat: Package Windows release as zip
 - Publish a zip containing Assassin.exe for Windows releases
 
