@@ -8,9 +8,10 @@
 - Added default blue icon for the AppImage .desktop entry
 - Linux artifact is now a tar.gz containing the AppImage (mirrors Windows zip layout)
 
-### fix: Add qt6-base-dev and QMAKE env for linuxdeploy-plugin-qt
-- Install qt6-base-dev in CI to provide qmake6 for linuxdeploy Qt plugin
-- Set QMAKE=/usr/bin/qmake6 environment variable
+### fix: Replace linuxdeploy-plugin-qt with manual Qt plugin copy
+- Removed qt6-base-dev and linuxdeploy-plugin-qt (qmake approach didn't find PySide6 Qt modules)
+- linuxdeploy now auto-deploys shared libraries via ELF dependency scanning
+- Manually copy Qt platform plugins from PySide6 package into AppDir
 
 ## 2026-04-29
 
