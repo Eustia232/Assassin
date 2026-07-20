@@ -55,6 +55,13 @@ class ReadingState:
         except Exception:
             pass
 
+    def reset_position(self, file_path: Optional[Path]) -> None:
+        self.save_state(
+            file_path=file_path,
+            chapter_index=0,
+            scroll_position=0,
+        )
+
     def get_state(self) -> Dict[str, Any]:
         """Get last reading state."""
         return {

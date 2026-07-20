@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from .parser import read_text, split_into_chapters
 from .models import Chapter
 
@@ -9,9 +9,9 @@ class ReaderCore:
         self.chapters: List[Chapter] = []
         self.current_index: int = 0
 
-    def load_txt(self, file_path: Path) -> None:
+    def load_txt(self, file_path: Path, chapter_pattern: Optional[str] = None) -> None:
         text = read_text(file_path)
-        self.chapters = split_into_chapters(text)
+        self.chapters = split_into_chapters(text, chapter_pattern=chapter_pattern)
         self.current_index = 0
 
     def get_current_chapter_html(self) -> str:

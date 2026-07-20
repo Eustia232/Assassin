@@ -12,6 +12,7 @@ DEFAULT_SETTINGS = {
     "auto_hide_delay_ms": 600,
     "hotkey": "Ctrl+Shift+H",
     "window_opacity": 100,  # 0-100, persisted across restarts
+    "chapter_rule_file": "默认.txt",
 }
 
 

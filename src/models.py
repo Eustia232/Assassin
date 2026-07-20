@@ -21,3 +21,4 @@ class StyleSettings(BaseModel):
     auto_hide_enabled: bool = True
     auto_hide_delay_ms: int = 600
     hotkey: str = "Ctrl+Shift+H"
+    chapter_rule_file: str = "默认.txt"

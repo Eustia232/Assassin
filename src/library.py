@@ -4,6 +4,7 @@ import sys
 from typing import Dict, Any, List, Optional
 
 from .reader import ReaderCore
+from .regex_rules import DEFAULT_CHAPTER_REGEX
 
 
 def _get_app_dir() -> Path:
@@ -52,7 +53,7 @@ class LibraryStore:
         if title is None:
             try:
                 rc = ReaderCore()
-                rc.load_txt(p)
+                rc.load_txt(p, chapter_pattern=DEFAULT_CHAPTER_REGEX)
                 html = rc.get_current_chapter_html()
                 # extract title from the generated html <h2>Title</h2>
                 if html.startswith("<h2>"):

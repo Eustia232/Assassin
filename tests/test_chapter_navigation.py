@@ -142,3 +142,16 @@ def test_chapter_list_dialog():
     # Test changing selection
     dialog.list_widget.setCurrentRow(2)
     assert dialog.get_selected_index() == 2
+
+
+def test_load_txt_custom_pattern(tmp_path: Path):
+    p = tmp_path / "custom.txt"
+    content = "SECTION A\nAlpha\nSECTION B\nBeta"
+    p.write_text(content, encoding="utf-8")
+
+    r = ReaderCore()
+    r.load_txt(p, chapter_pattern=r"^SECTION\s+\w+")
+
+    assert r.get_chapter_count() == 2
+    assert r.get_current_chapter_index() == 0
+    assert "SECTION A" in r.chapters[0].title
