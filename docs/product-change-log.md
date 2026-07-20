@@ -16,6 +16,10 @@
 ### fix: Use uv run for PySide6 import in AppImage build
 - python3 couldn't find PySide6 (installed in uv venv), switched to uv run python3
 
+### fix: Add libxcb-cursor0 dependency for xcb platform plugin
+- Qt 6.5+ requires libxcb-cursor0 to load xcb platform plugin
+- linuxdeploy now detects and bundles it automatically
+
 ## 2026-04-29
 
 ### feat: Allow window opacity down to 0.1%
