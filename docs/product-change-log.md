@@ -8,6 +8,10 @@
 - Added default blue icon for the AppImage .desktop entry
 - Linux artifact is now a tar.gz containing the AppImage (mirrors Windows zip layout)
 
+### fix: Add qt6-base-dev and QMAKE env for linuxdeploy-plugin-qt
+- Install qt6-base-dev in CI to provide qmake6 for linuxdeploy Qt plugin
+- Set QMAKE=/usr/bin/qmake6 environment variable
+
 ## 2026-04-29
 
 ### feat: Allow window opacity down to 0.1%
