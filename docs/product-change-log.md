@@ -1,5 +1,13 @@
 # Product Change Log
 
+## 2026-07-20
+
+### feat: Package Linux release as AppImage inside tar.gz
+- Replaced raw PyInstaller binary with self-contained AppImage via linuxdeploy
+- AppImage bundles Qt libraries for cross-distro portability, no system deps needed
+- Added default blue icon for the AppImage .desktop entry
+- Linux artifact is now a tar.gz containing the AppImage (mirrors Windows zip layout)
+
 ## 2026-04-29
 
 ### feat: Allow window opacity down to 0.1%
