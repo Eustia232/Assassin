@@ -13,6 +13,9 @@
 - linuxdeploy now auto-deploys shared libraries via ELF dependency scanning
 - Manually copy Qt platform plugins from PySide6 package into AppDir
 
+### fix: Use uv run for PySide6 import in AppImage build
+- python3 couldn't find PySide6 (installed in uv venv), switched to uv run python3
+
 ## 2026-04-29
 
 ### feat: Allow window opacity down to 0.1%

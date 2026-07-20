@@ -110,7 +110,7 @@ jobs:
           "
           cp AppDir/assassin.png AppDir/.DirIcon
 
-          PYSIDE_QT=$(python3 -c "import PySide6, os; print(os.path.join(os.path.dirname(PySide6.__file__), 'Qt'))")
+          PYSIDE_QT=$(uv run python3 -c "import PySide6, os; print(os.path.join(os.path.dirname(PySide6.__file__), 'Qt'))")
           mkdir -p AppDir/usr/plugins
           cp -r "$PYSIDE_QT/plugins/platforms" AppDir/usr/plugins/
 
