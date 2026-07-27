@@ -1,15 +1,8 @@
 from pathlib import Path
 import json
-import sys
 from typing import Dict, Any, Optional
 
-
-def _get_app_dir() -> Path:
-    """Get the directory where the application (exe or script) is located."""
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    else:
-        return Path(__file__).parent.parent
+from .app_paths import get_app_dir
 
 
 class ProgressStore:
@@ -19,7 +12,7 @@ class ProgressStore:
     """
 
     def __init__(self, path: Optional[Path] = None):
-        app_dir = _get_app_dir()
+        app_dir = get_app_dir()
         self.path = path or (app_dir / "progress.json")
         self._data: Dict[str, Dict[str, Any]] = {}
         self._load()

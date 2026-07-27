@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -53,30 +52,7 @@ from .regex_rules import (
     list_rule_files,
     load_rule_pattern,
 )
-
-
-def get_app_dir() -> Path:
-    """Get the directory where the application (exe or script) is located."""
-    if getattr(sys, "frozen", False):
-        # Running as compiled exe (PyInstaller)
-        return Path(sys.executable).parent
-    else:
-        # Running as script
-        return Path(__file__).parent.parent
-
-
-def _get_data_dir() -> Path:
-    """Get directory for bundled data files (assets/).
-
-    For AppImage, uses $APPIMAGE env var to locate assets/ alongside the AppImage.
-    For PyInstaller frozen, falls back to sys.executable.parent.
-    """
-    appimage = os.environ.get("APPIMAGE")
-    if appimage:
-        return Path(appimage).parent
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    return get_app_dir()
+from .app_paths import get_app_dir, get_data_dir
 
 
 class QtReaderView:
@@ -770,7 +746,7 @@ class MainWindow(QMainWindow):
                 pass  # File might be corrupted or inaccessible
 
     def _load_welcome_text(self) -> str:
-        app_dir = _get_data_dir()
+        app_dir = get_data_dir()
         welcome_path = app_dir / "assets" / "welcome.txt"
         try:
             return welcome_path.read_text(encoding="utf-8")
@@ -787,7 +763,7 @@ class MainWindow(QMainWindow):
         self._update_title_bar()
 
     def _get_regex_dir(self) -> Path:
-        app_dir = _get_data_dir()
+        app_dir = get_data_dir()
         return app_dir / "assets" / "regex"
 
     def _get_chapter_pattern(self) -> str:

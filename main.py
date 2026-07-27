@@ -1,16 +1,8 @@
 import sys
 from pathlib import Path
-import sys
 from src.settings_store import SettingsStore
 from src.reader import ReaderCore
-
-
-def get_app_dir() -> Path:
-    """Get the directory where the application (exe or script) is located."""
-    if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    else:
-        return Path(__file__).parent
+from src.app_paths import get_app_dir
 
 
 def main():
