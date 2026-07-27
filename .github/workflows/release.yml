@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: uv sync --frozen
       - name: Build Windows binary
-        run: uv run pyinstaller main.py --onefile --noconsole --name "Assassin-${{ github.ref_name }}-windows" --add-data "assets:assets"
+        run: uv run pyinstaller main.py --onefile --noconsole --name "Assassin-${{ github.ref_name }}-windows"
       - name: Package Windows zip
         run: |
           Rename-Item "dist\Assassin-${{ github.ref_name }}-windows.exe" "Assassin.exe"
@@ -71,7 +71,6 @@ jobs:
         run: |
           mkdir -p AppDir/usr/bin
           cp -r dist/Assassin/* AppDir/usr/bin/
-          cp -r assets AppDir/usr/
 
           cat > AppDir/AppRun << 'EOF'
           #!/bin/bash

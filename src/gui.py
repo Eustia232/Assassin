@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Optional
 
@@ -62,6 +63,20 @@ def get_app_dir() -> Path:
     else:
         # Running as script
         return Path(__file__).parent.parent
+
+
+def _get_data_dir() -> Path:
+    """Get directory for bundled data files (assets/).
+
+    For AppImage, uses $APPIMAGE env var to locate assets/ alongside the AppImage.
+    For PyInstaller frozen, falls back to sys.executable.parent.
+    """
+    appimage = os.environ.get("APPIMAGE")
+    if appimage:
+        return Path(appimage).parent
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent
+    return get_app_dir()
 
 
 class QtReaderView:
@@ -755,7 +770,7 @@ class MainWindow(QMainWindow):
                 pass  # File might be corrupted or inaccessible
 
     def _load_welcome_text(self) -> str:
-        app_dir = get_app_dir()
+        app_dir = _get_data_dir()
         welcome_path = app_dir / "assets" / "welcome.txt"
         try:
             return welcome_path.read_text(encoding="utf-8")
@@ -772,7 +787,7 @@ class MainWindow(QMainWindow):
         self._update_title_bar()
 
     def _get_regex_dir(self) -> Path:
-        app_dir = get_app_dir()
+        app_dir = _get_data_dir()
         return app_dir / "assets" / "regex"
 
     def _get_chapter_pattern(self) -> str:
