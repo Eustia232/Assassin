@@ -1,5 +1,13 @@
 # Product Change Log
 
+## 2026-08-25
+
+### fix: Remove content-dependent minimum window width on Windows
+- Set explicit `setMinimumSize(200, 100)` on MainWindow to override Qt's content-derived minimum
+- Set QTextBrowser size policy to `Ignored` horizontally so book content no longer constrains window width
+- Added `setMinimumWidth(0)` on QTextBrowser to fully remove widget-level minimum width hint
+- Window can now be resized freely regardless of loaded book content
+
 ## 2026-07-20
 
 ### feat: Package Linux release as AppImage inside tar.gz

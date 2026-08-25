@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem,
     QDoubleSpinBox,
     QMessageBox,
+    QSizePolicy,
 )
 from PySide6.QtGui import (
     QIcon,
@@ -482,6 +483,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Reader")
         self.resize(900, 600)
+        self.setMinimumSize(200, 100)
         self.setMouseTracking(True)
 
         # Frameless window with transparent background
@@ -531,6 +533,12 @@ class MainWindow(QMainWindow):
         if viewport:
             viewport.setAutoFillBackground(False)
         main_layout.addWidget(self.reader_view.widget, stretch=1)
+
+        # Prevent content-dependent minimum width from QTextBrowser
+        self.reader_view.widget.setSizePolicy(
+            QSizePolicy.Ignored, QSizePolicy.Preferred
+        )
+        self.reader_view.widget.setMinimumWidth(0)
 
         # Connect text browser to frame for wheel event forwarding
         self._frame.set_text_browser(self.reader_view.widget)
