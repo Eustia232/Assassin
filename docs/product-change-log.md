@@ -2,6 +2,11 @@
 
 ## 2026-08-25
 
+### fix: Prioritize reading progress over filename in title bar
+- Reordered title bar text to show progress (chapter/percentage) before filename
+- Format changed from `Reader - file.txt [3/20] 45%` to `Reader - [3/20] 45% | file.txt`
+- Ensures reading progress remains visible when window width is narrow
+
 ### fix: Remove content-dependent minimum window width on Windows
 - Set explicit `setMinimumSize(200, 100)` on MainWindow to override Qt's content-derived minimum
 - Set QTextBrowser size policy to `Ignored` horizontally so book content no longer constrains window width

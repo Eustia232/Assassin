@@ -688,11 +688,11 @@ class MainWindow(QMainWindow):
 
         if total > 1:
             self._title_bar.title_label.setText(
-                f"Reader - {self._current_file.name} [{current}/{total}] {percentage}%"
+                f"Reader - [{current}/{total}] {percentage}% | {self._current_file.name}"
             )
         else:
             self._title_bar.title_label.setText(
-                f"Reader - {self._current_file.name} {percentage}%"
+                f"Reader - {percentage}% | {self._current_file.name}"
             )
 
     def go_next_chapter(self) -> None:
